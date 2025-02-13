@@ -6,6 +6,7 @@ import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/controllers/project/add_project_controller.dart';
 import 'package:project_manager/controllers/project/project_controller.dart';
 import 'package:project_manager/models/project.dart';
+import 'package:project_manager/models/user.dart';
 import 'package:project_manager/utils/color_utils.dart';
 import 'package:uuid/uuid.dart';
 
@@ -25,7 +26,8 @@ class AddProjectScreen extends StatelessWidget {
   final AuthController authController = Get.find();
   final AddProjectController addProjectController =
       Get.put(AddProjectController());
-  // final AppwriteController appwriteController = Get.find();
+
+  final List<User> listUsers = <User>[].obs;
 
   final projectID = const Uuid().v4();
 
@@ -37,7 +39,7 @@ class AddProjectScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (count == 0) {
-      addProjectController.addUser(authController.currentUser.value!);
+      listUsers.add(authController.currentUser.value!);
       count++;
     }
     return Scaffold(
@@ -323,35 +325,27 @@ class AddProjectScreen extends StatelessWidget {
                       Expanded(
                         child: Obx(() => ListView.builder(
                             scrollDirection: Axis.horizontal,
-                            itemCount:
-                                addProjectController.assignedForArr.length,
+                            itemCount: listUsers.length,
                             itemBuilder: (context, index) {
+                              final user = listUsers[index];
                               return Stack(
                                 children: [
-                                  addProjectController
-                                              .assignedForArr[index].imageUrl !=
-                                          null
+                                  user.imageUrl != null
                                       ? Stack(
                                           children: [
                                             CircleAvatar(
-                                              backgroundImage: NetworkImage(
-                                                  addProjectController
-                                                      .assignedForArr[index]
-                                                      .imageUrl!),
+                                              backgroundImage:
+                                                  NetworkImage(user.imageUrl!),
                                             ),
                                           ],
                                         )
                                       : CircleAvatar(
-                                          backgroundColor: addProjectController
-                                              .assignedForArr[index].color,
+                                          backgroundColor: user.color,
                                           foregroundColor:
                                               getContrastingTextColor(
-                                                  addProjectController
-                                                      .assignedForArr[index]
-                                                      .color!),
-                                          child: Text(addProjectController
-                                              .assignedForArr[index].name[0]
-                                              .toUpperCase()),
+                                                  user.color!),
+                                          child:
+                                              Text(user.name[0].toUpperCase()),
                                         ),
                                   if (index != 0)
                                     Positioned(
@@ -366,8 +360,7 @@ class AddProjectScreen extends StatelessWidget {
                                           backgroundColor: Colors.grey,
                                         ),
                                         onTap: () {
-                                          addProjectController
-                                              .removeUser(index);
+                                          listUsers.removeAt(index);
                                         },
                                       ),
                                     ),
@@ -384,6 +377,10 @@ class AddProjectScreen extends StatelessWidget {
                           // Get.to(() => AddUserScreen());
                           await Get.defaultDialog(
                             title: 'add members'.tr,
+                            titleStyle: TextStyle(
+                                color: Get.isDarkMode
+                                    ? Colors.white
+                                    : Colors.black),
                             content: Form(
                               key: _formKey1,
                               child: SingleChildScrollView(
@@ -400,9 +397,7 @@ class AddProjectScreen extends StatelessWidget {
                                         hintText: 'enter user email'.tr,
                                       ),
                                       validator: (value) {
-                                        final user = addProjectController
-                                            .assignedForArr
-                                            .firstWhereOrNull(
+                                        final user = listUsers.firstWhereOrNull(
                                           (user) =>
                                               user.email ==
                                               emailController.text,
@@ -431,7 +426,7 @@ class AddProjectScreen extends StatelessWidget {
                                           if (user != null) {
                                             emailController.clear();
                                             Get.back();
-                                            addProjectController.addUser(user);
+                                            listUsers.add(user);
                                             // Get.snackbar('Successful',
                                             //     '${user.name} added to project',
                                             //     colorText: Colors.green);
@@ -510,9 +505,7 @@ class AddProjectScreen extends StatelessWidget {
                           endDate: DateFormat('MM/dd/yyyy, HH:mm')
                               .parse(dueDateController.text),
                           taskIds: [],
-                          userIds: addProjectController.assignedForArr
-                              .map((user) => user.id)
-                              .toList(),
+                          userIds: listUsers.map((user) => user.id).toList(),
                           // attachments: attachments,
                           owner: authController.currentUser.value!.id,
                         ),

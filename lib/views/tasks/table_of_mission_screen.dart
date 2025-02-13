@@ -1,27 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:project_manager/bindings/task_binding.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/controllers/task/task_controller.dart';
+import 'package:project_manager/models/project.dart';
 import 'package:project_manager/views/tasks/add_task_screen.dart';
 import 'package:project_manager/views/tasks/components/card_task_custom.dart';
 
 class TableOfMissionScreen extends StatelessWidget {
-  TableOfMissionScreen({super.key, required this.ownerId});
-  final String ownerId;
+  TableOfMissionScreen({super.key, required this.project});
+  final Project project;
 
   final TaskController _taskController = Get.find();
   final AuthController _authController = Get.find();
 
   @override
   Widget build(BuildContext context) {
-    final isOwner = ownerId == _authController.currentUser.value!.id;
-    print(ownerId);
+    final isOwner = project.owner == _authController.currentUser.value!.id;
+    print(project.owner);
     print(_authController.currentUser.value!.id);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Bảng nhiệm vụ'.tr,
+          'table of mission'.tr,
         ),
       ),
       body: Obx(
@@ -34,13 +36,14 @@ class TableOfMissionScreen extends StatelessWidget {
                 separatorBuilder: (context, index) =>
                     const SizedBox(height: 10),
                 itemBuilder: (context, index) {
-                  return CardTaskCustom();
+                  return const CardTaskCustom();
                 }),
       ),
       floatingActionButton: isOwner
           ? FloatingActionButton(
               onPressed: () {
-                Get.to(() => AddTaskScreen());
+                Get.to(() => AddTaskScreen(project: project),
+                    binding: TaskBinding());
               },
               tooltip: 'add'.tr,
               backgroundColor: Colors.blue,

@@ -5,12 +5,16 @@ import 'package:intl/intl.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/controllers/project/add_project_controller.dart';
 import 'package:project_manager/controllers/project/project_controller.dart';
+import 'package:project_manager/controllers/task/task_controller.dart';
 import 'package:project_manager/models/project.dart';
+import 'package:project_manager/models/task.dart';
+import 'package:project_manager/models/user.dart';
 import 'package:project_manager/utils/color_utils.dart';
 import 'package:uuid/uuid.dart';
 
 class AddTaskScreen extends StatelessWidget {
-  AddTaskScreen({super.key});
+  AddTaskScreen({super.key, required this.project});
+  final Project project;
 
   final _formKey = GlobalKey<FormState>();
   final _formKey1 = GlobalKey<FormState>();
@@ -24,8 +28,10 @@ class AddTaskScreen extends StatelessWidget {
 
   final ProjectController projectController = Get.find();
   final AuthController authController = Get.find();
+  final TaskController taskController = Get.find();
   final AddProjectController addProjectController =
       Get.put(AddProjectController());
+  final List<User> listUsers = <User>[].obs;
 
   @override
   Widget build(BuildContext context) {
@@ -291,7 +297,7 @@ class AddTaskScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        'assigned afor'.tr,
+                        'assigned for'.tr,
                         style: Get.textTheme.bodyLarge!.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -309,36 +315,27 @@ class AddTaskScreen extends StatelessWidget {
                         Expanded(
                           child: Obx(() => ListView.builder(
                               scrollDirection: Axis.horizontal,
-                              itemCount:
-                                  addProjectController.assignedForArr.length,
+                              itemCount: listUsers.length,
                               itemBuilder: (context, index) {
                                 return Stack(
                                   children: [
-                                    addProjectController.assignedForArr[index]
-                                                .imageUrl !=
-                                            null
+                                    listUsers[index].imageUrl != null
                                         ? Stack(
                                             children: [
                                               CircleAvatar(
                                                 backgroundImage: NetworkImage(
-                                                    addProjectController
-                                                        .assignedForArr[index]
-                                                        .imageUrl!),
+                                                    listUsers[index].imageUrl!),
                                               ),
                                             ],
                                           )
                                         : CircleAvatar(
                                             backgroundColor:
-                                                addProjectController
-                                                    .assignedForArr[index]
-                                                    .color,
+                                                listUsers[index].color,
                                             foregroundColor:
                                                 getContrastingTextColor(
-                                                    addProjectController
-                                                        .assignedForArr[index]
-                                                        .color!),
-                                            child: Text(addProjectController
-                                                .assignedForArr[index].name[0]
+                                                    listUsers[index].color!),
+                                            child: Text(listUsers[index]
+                                                .name[0]
                                                 .toUpperCase()),
                                           ),
                                     if (index != 0)
@@ -354,8 +351,7 @@ class AddTaskScreen extends StatelessWidget {
                                             backgroundColor: Colors.grey,
                                           ),
                                           onTap: () {
-                                            addProjectController
-                                                .removeUser(index);
+                                            listUsers.removeAt(index);
                                           },
                                         ),
                                       ),
@@ -372,6 +368,10 @@ class AddTaskScreen extends StatelessWidget {
                             // Get.to(() => AddUserScreen());
                             await Get.defaultDialog(
                               title: 'add members'.tr,
+                              titleStyle: TextStyle(
+                                  color: Get.isDarkMode
+                                      ? Colors.white
+                                      : Colors.black),
                               content: Form(
                                 key: _formKey1,
                                 child: SingleChildScrollView(
@@ -388,13 +388,10 @@ class AddTaskScreen extends StatelessWidget {
                                           hintText: 'enter user email'.tr,
                                         ),
                                         validator: (value) {
-                                          final user = addProjectController
-                                              .assignedForArr
-                                              .firstWhereOrNull(
-                                            (user) =>
-                                                user.email ==
-                                                emailController.text,
-                                          );
+                                          final user = listUsers
+                                              .firstWhereOrNull((user) {
+                                            return user == emailController.text;
+                                          });
                                           if (value == null || value.isEmpty) {
                                             return 'you must enter user email'
                                                 .tr;
@@ -421,8 +418,7 @@ class AddTaskScreen extends StatelessWidget {
                                             if (user != null) {
                                               emailController.clear();
                                               Get.back();
-                                              addProjectController
-                                                  .addUser(user);
+                                              listUsers.add(user);
                                               // Get.snackbar('Successful',
                                               //     '${user.name} added to project',
                                               //     colorText: Colors.green);
@@ -451,9 +447,7 @@ class AddTaskScreen extends StatelessWidget {
                         // )
                       ],
                     )),
-                const SizedBox(height: 15),
-                const Divider(thickness: 0, height: 0),
-                const SizedBox(height: 15),
+                _customDivider(),
                 _customWidget(
                   icon: Icons.flag_outlined,
                   title: 'priority'.tr,
@@ -482,29 +476,73 @@ class AddTaskScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+                _customDivider(),
+                _customWidget(
+                  icon: Icons.flag_outlined,
+                  title: 'complexity'.tr,
+                  color: Colors.green[200]!,
+                  isTextField: false,
+                ),
+                const SizedBox(height: 15),
+                Container(
+                  height: 35,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      const SizedBox(width: 20),
+                      _customLabelComplexity(context, Complexity.easy, () {
+                        addProjectController.changeComplexity(0);
+                      }),
+                      const SizedBox(width: 20),
+                      _customLabelComplexity(context, Complexity.medium, () {
+                        addProjectController.changeComplexity(1);
+                      }),
+                      const SizedBox(width: 20),
+                      _customLabelComplexity(context, Complexity.hard, () {
+                        addProjectController.changeComplexity(2);
+                      }),
+                      const SizedBox(width: 20),
+                      _customLabelComplexity(context, Complexity.veryHard, () {
+                        addProjectController.changeComplexity(3);
+                      }),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 30),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: TextButton(
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        await projectController.addProject(
+                        await taskController.addTask(Task(
+                          title: titleController.text,
+                          description: descriptionController.text,
+                          startDate: DateFormat('MM/dd/yyyy, HH:mm')
+                              .parse(startDateController.text),
+                          endDate: DateFormat('MM/dd/yyyy, HH:mm')
+                              .parse(dueDateController.text),
+                          status: Status.notStarted,
+                          priority: Priority.values[
+                              addProjectController.selectedPriority.value],
+                          assignTo: '',
+                          projectOwner: project.id,
+                          complexity: Complexity.values[
+                              addProjectController.selectedComplexity.value],
+                        ));
+                        await projectController.updateProject(
                           Project(
-                            id: taskID,
-                            title: titleController.text,
-                            description: descriptionController.text,
-                            status: Status.notStarted,
-                            priority: Priority.values[
-                                addProjectController.selectedPriority.value],
-                            startDate: DateFormat('MM/dd/yyyy, HH:mm')
-                                .parse(startDateController.text),
-                            endDate: DateFormat('MM/dd/yyyy, HH:mm')
-                                .parse(dueDateController.text),
-                            taskIds: [],
-                            userIds: addProjectController.assignedForArr
-                                .map((user) => user.id)
-                                .toList(),
-                            owner: authController.currentUser.value!.id,
+                            id: project.id,
+                            title: project.title,
+                            description: project.description,
+                            status: project.status,
+                            priority: project.priority,
+                            startDate: project.startDate,
+                            endDate: project.endDate,
+                            taskIds:
+                                taskController.tasks.map((e) => e.id).toList(),
+                            userIds: project.userIds,
+                            owner: project.owner,
                           ),
                         );
                       }
@@ -526,7 +564,7 @@ class AddTaskScreen extends StatelessWidget {
                       height: kIsWeb ? 50 : 40,
                       alignment: Alignment.center,
                       child: Text(
-                        'create project'.tr,
+                        'create task'.tr,
                         style: Get.textTheme.bodyLarge!.copyWith(
                             fontWeight: FontWeight.bold, fontSize: 18),
                       ),
@@ -621,6 +659,48 @@ class AddTaskScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _customLabelComplexity(
+      BuildContext context, Complexity complexity, Function() onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Obx(
+        () => Container(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black, width: 1),
+            color: addProjectController.selectedComplexity.value ==
+                    complexity.index
+                ? getComplexityColor(complexity)
+                : null,
+            borderRadius: BorderRadius.circular(15),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            complexity.name.tr,
+            style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 15,
+                  color: addProjectController.selectedComplexity.value ==
+                          complexity.index
+                      ? Colors.black
+                      : null,
+                ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _customDivider() {
+    return const Column(
+      children: [
+        SizedBox(height: 15),
+        Divider(thickness: 0, height: 0),
+        SizedBox(height: 15),
+      ],
     );
   }
 }

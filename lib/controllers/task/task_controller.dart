@@ -32,6 +32,7 @@ class TaskController extends GetxController {
     LoadingOverlay.show();
     try {
       await _firestore.collection('tasks').doc(task.id).set(task.toMap());
+      tasks.add(task);
       await LoadingOverlay.hide();
       Get.back();
       Get.snackbar('Success', 'Add task success', colorText: Colors.green);
@@ -62,6 +63,7 @@ class TaskController extends GetxController {
     LoadingOverlay.show();
     try {
       await _firestore.collection('tasks').doc(taskId).delete();
+      tasks.removeWhere((task) => task.id == taskId);
       await LoadingOverlay.hide();
       Get.snackbar(
         'Success',

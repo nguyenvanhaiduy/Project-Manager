@@ -12,6 +12,7 @@ class Task {
   final Status status;
   final Priority priority;
   final String assignTo; // Lưu ID của User
+  final String projectOwner;
   final Complexity complexity;
 
   Task(
@@ -23,6 +24,7 @@ class Task {
       required this.status,
       required this.priority,
       required this.assignTo,
+      required this.projectOwner,
       required this.complexity})
       : id = id ?? const Uuid().v4();
 
@@ -37,6 +39,7 @@ class Task {
           Status.notStarted,
       priority: data['priority'],
       assignTo: data['assignTo'],
+      projectOwner: data['projectOwner'],
       complexity: Complexity.values
               .firstWhereOrNull((c) => c.name == data['complexity']) ??
           Complexity.easy,
@@ -52,6 +55,7 @@ class Task {
       'endDate': Timestamp.fromDate(endDate),
       'status': status.name,
       'assignTo': assignTo,
+      'projectOwner': projectOwner,
       'complexity': complexity.name,
     };
   }

@@ -176,22 +176,23 @@ class CardProjectCustom extends StatelessWidget {
                   width: project.userIds.length == 1
                       ? (30 * project.userIds.length.toDouble()) + 10
                       : project.userIds.length > 2
-                          ? (30 * project.userIds.length.toDouble()) - 2
-                          : (30 * project.userIds.length.toDouble()) + 4,
+                          ? (30 * 3) - 2
+                          : (30 * 2) + 4,
                   child: Stack(
                     children: [
-                      for (int i = 0; i < project.userIds.length; i++)
+                      for (int i = 0;
+                          i <
+                              (project.userIds.length < 3
+                                  ? project.userIds.length
+                                  : 3);
+                          i++)
                         StreamBuilder<User?>(
                             stream: Stream.fromFuture(projectController.getUser(
                                 userId: project.userIds[i])),
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
-                                return const SizedBox(
-                                    // height: 10,
-                                    // width: 10,
-                                    // child: CircularProgressIndicator(),
-                                    );
+                                return const SizedBox();
                               } else if (!snapshot.hasData) {
                                 return const Icon(Icons.person);
                               } else {

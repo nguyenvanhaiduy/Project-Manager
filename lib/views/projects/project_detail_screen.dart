@@ -27,9 +27,11 @@ class ProjectDetailScreen extends StatelessWidget {
   final GlobalKey _buttonStatusKey =
       GlobalKey(); // Tạo GlobalKey cho OutlinedButton
   final GlobalKey _buttonPriorityKey = GlobalKey();
+  final _formKey1 = GlobalKey<FormState>();
   final _formKey = GlobalKey<FormState>();
   final ProjectController projectController = Get.find();
-  final RxList<String> listUsers = <String>[].obs;
+  final RxList<String> listUserIds = <String>[].obs;
+  final TextEditingController emailController = TextEditingController();
 
   final progressProjectController = Get.put(
     ProgressProjectController(targetValue: 0.2),
@@ -94,11 +96,11 @@ class ProjectDetailScreen extends StatelessWidget {
                                 // backgroundColor: Colors.white,
                                 ),
                             onPressed: () {
-                              print(listUsers.length);
+                              print(listUserIds.length);
 
-                              listUsers.remove(id);
+                              listUserIds.remove(id);
                               Get.back();
-                              print(listUsers.length);
+                              print(listUserIds.length);
                             },
                             child: Text('yes'.tr),
                           ),
@@ -129,7 +131,7 @@ class ProjectDetailScreen extends StatelessWidget {
 
     RxInt selectStatusIndex = project.status.index.obs;
     RxInt selectPriorityIndex = project.priority.index.obs;
-    listUsers.value = project.userIds.obs;
+    listUserIds.value = project.userIds.obs;
 
     void changeStatusIndex(int value) {
       selectStatusIndex.value = value;
@@ -272,7 +274,7 @@ class ProjectDetailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               const Divider(),
-              const SizedBox(height: 15),
+              const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
@@ -290,10 +292,6 @@ class ProjectDetailScreen extends StatelessWidget {
                           backgroundColor: getStatusColor(
                             Status.values[selectStatusIndex.value],
                           ),
-                          // side: BorderSide(
-                          //     // color: Get.isDarkMode ? Colors.white : Colors.black,
-                          //     // width: 1,
-                          //     ),
                           foregroundColor: Colors.white,
                         ),
                         key: _buttonStatusKey,
@@ -338,7 +336,7 @@ class ProjectDetailScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Row(
@@ -351,50 +349,172 @@ class ProjectDetailScreen extends StatelessWidget {
                     ),
                     SizedBox(
                       height: 35,
-                      width: 100,
+                      width: Get.size.width * 0.6,
                       child: Obx(
                         () => Stack(
                           fit: StackFit.expand,
                           alignment: Alignment.centerRight,
                           children: [
-                            for (int i = 0; i < listUsers.length; i++)
-                              StreamBuilder<User?>(
-                                stream: Stream.fromFuture(projectController
-                                    .getUser(userId: listUsers[i])),
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return Container();
-                                  } else if (snapshot.hasError) {
-                                    return const Icon(Icons.error);
-                                  } else if (!snapshot.hasData ||
-                                      snapshot.data == null) {
-                                    return SizedBox();
-                                  } else {
-                                    return Positioned(
-                                      right: i *
-                                          24.0, // Điều chỉnh khoảng cách giữa các avatar
-                                      child: GestureDetector(
-                                        onTap: () async {
-                                          if (isOwner) {
-                                            if (snapshot.data!.id !=
-                                                project.owner) {
-                                              await confirmDeleteUser(
-                                                snapshot.data!.name,
-                                                snapshot.data!.id,
-                                              );
-                                            }
-                                          }
-                                        },
-                                        child: BuildAvatar(
-                                          user: snapshot.data!,
-                                          size: 17.5,
-                                        ),
+                            for (int i = 0; i <= listUserIds.length; i++)
+                              if (i == listUserIds.length)
+                                if (isOwner)
+                                  Positioned(
+                                    right: i * 24,
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        await Get.defaultDialog(
+                                          title: 'add members'.tr,
+                                          titleStyle: TextStyle(
+                                              color: Get.isDarkMode
+                                                  ? Colors.white
+                                                  : Colors.black),
+                                          content: Form(
+                                            key: _formKey1,
+                                            child: SingleChildScrollView(
+                                              keyboardDismissBehavior:
+                                                  ScrollViewKeyboardDismissBehavior
+                                                      .onDrag,
+                                              child: Column(
+                                                children: [
+                                                  TextFormField(
+                                                    controller: emailController,
+                                                    decoration: InputDecoration(
+                                                      border:
+                                                          OutlineInputBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          10)),
+                                                      hintText:
+                                                          'enter user email'.tr,
+                                                    ),
+                                                    validator: (value) {
+                                                      final user = listUserIds
+                                                          .firstWhereOrNull(
+                                                        (email) =>
+                                                            email ==
+                                                            emailController
+                                                                .text,
+                                                      );
+                                                      if (value == null ||
+                                                          value.isEmpty) {
+                                                        return 'you must enter user email'
+                                                            .tr;
+                                                      }
+                                                      if (user != null) {
+                                                        return 'user already exists'
+                                                            .tr;
+                                                      }
+                                                      if (!GetUtils.isEmail(
+                                                          value)) {
+                                                        return 'please enter a valid email'
+                                                            .tr;
+                                                      }
+                                                      return null;
+                                                    },
+                                                  ),
+                                                  const SizedBox(height: 10),
+                                                  TextButton(
+                                                    onPressed: () async {
+                                                      if (_formKey1
+                                                          .currentState!
+                                                          .validate()) {
+                                                        final user =
+                                                            await projectController
+                                                                .getUser(
+                                                                    email: emailController
+                                                                        .text);
+                                                        if (user != null) {
+                                                          if (!listUserIds
+                                                              .contains(
+                                                                  user.id)) {
+                                                            emailController
+                                                                .clear();
+                                                            Get.back();
+                                                            listUserIds
+                                                                .add(user.id);
+                                                          } else {
+                                                            Get.snackbar(
+                                                                'Error',
+                                                                'This user was in the project',
+                                                                colorText:
+                                                                    Colors.red,
+                                                                duration:
+                                                                    const Duration(
+                                                                        seconds:
+                                                                            1));
+                                                          }
+                                                        } else {
+                                                          Get.snackbar('Error',
+                                                              'This account does not exist',
+                                                              colorText:
+                                                                  Colors.red,
+                                                              duration:
+                                                                  const Duration(
+                                                                      seconds:
+                                                                          1));
+                                                        }
+                                                      }
+                                                    },
+                                                    child: Text('add'.tr),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            // ignore: deprecated_member_use
+                                            onPopInvoked: (didPop) {
+                                              emailController.clear();
+                                            },
+                                          ),
+                                        );
+                                      },
+                                      child: const CircleAvatar(
+                                        radius: 17.5,
+                                        backgroundColor: Colors.redAccent,
+                                        child: Icon(Icons.add),
                                       ),
-                                    );
-                                  }
-                                },
-                              ),
+                                    ),
+                                  )
+                                else
+                                  const SizedBox()
+                              else
+                                StreamBuilder<User?>(
+                                  stream: Stream.fromFuture(projectController
+                                      .getUser(userId: listUserIds[i])),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState ==
+                                        ConnectionState.waiting) {
+                                      return Container();
+                                    } else if (snapshot.hasError) {
+                                      return const Icon(Icons.error);
+                                    } else if (!snapshot.hasData ||
+                                        snapshot.data == null) {
+                                      return const SizedBox();
+                                    } else {
+                                      return Positioned(
+                                        right: i *
+                                            24.0, // Điều chỉnh khoảng cách giữa các avatar
+                                        child: GestureDetector(
+                                          onTap: () async {
+                                            if (isOwner) {
+                                              if (snapshot.data!.id !=
+                                                  project.owner) {
+                                                await confirmDeleteUser(
+                                                  snapshot.data!.name,
+                                                  snapshot.data!.id,
+                                                );
+                                              }
+                                            }
+                                          },
+                                          child: BuildAvatar(
+                                            user: snapshot.data!,
+                                            size: 17.5,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                )
                           ],
                         ),
                       ),
@@ -512,7 +632,8 @@ class ProjectDetailScreen extends StatelessWidget {
                               onPressed: () {
                                 Get.to(
                                     () => TableOfMissionScreen(
-                                        ownerId: project.owner),
+                                          project: project,
+                                        ),
                                     binding: TaskBinding());
                               },
                               child: Text(
@@ -576,7 +697,7 @@ class ProjectDetailScreen extends StatelessWidget {
                               endDate: DateFormat('MM/dd/yyyy, HH:mm')
                                   .parse(dueDateController.text),
                               taskIds: project.taskIds,
-                              userIds: listUsers,
+                              userIds: listUserIds,
                               // attachments: [],
                               owner: project.owner,
                             ),

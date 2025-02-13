@@ -132,27 +132,27 @@ class ProjectScreen extends StatelessWidget {
     );
   }
 
-  Widget _customLable(BuildContext context,
-      {required String label, required Function() ontap}) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(15),
-      splashColor: Colors.green,
-      hoverColor: Colors.blue,
-      highlightColor: Colors.purple,
-      onTap: ontap,
-      child: Container(
-        height: 30,
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        decoration: BoxDecoration(
-          color: Colors.red,
-          borderRadius: BorderRadius.circular(15),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.bodyLarge!,
-        ),
-      ),
-    );
-  }
+  // Widget _customLable(BuildContext context,
+  //     {required String label, required Function() ontap}) {
+  //   return InkWell(
+  //     borderRadius: BorderRadius.circular(15),
+  //     splashColor: Colors.green,
+  //     hoverColor: Colors.blue,
+  //     highlightColor: Colors.purple,
+  //     onTap: ontap,
+  //     child: Container(
+  //       height: 30,
+  //       padding: const EdgeInsets.symmetric(horizontal: 15),
+  //       decoration: BoxDecoration(
+  //         color: Colors.red,
+  //         borderRadius: BorderRadius.circular(15),
+  //       ),
+  //       alignment: Alignment.center,
+  //       child: Text(
+  //         label,
+  //         style: Theme.of(context).textTheme.bodyLarge!,
+  //       ),
+  //     ),
+  //   );
+  // }
 }

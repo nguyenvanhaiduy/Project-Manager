@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project_manager/models/project.dart';
+import 'package:project_manager/models/task.dart';
 
 Color getContrastingTextColor(Color backgroundColor) {
   return backgroundColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
@@ -17,8 +18,6 @@ Color getStatusColor(Status status) {
       return Colors.orange;
     case Status.cancelled:
       return Colors.red;
-    default:
-      return Colors.black;
   }
 }
 
@@ -30,7 +29,18 @@ Color getPriorityColor(Priority priority) {
       return Colors.yellow[700]!;
     case Priority.high:
       return Colors.red;
-    default:
-      return Colors.black;
+  }
+}
+
+Color getComplexityColor(Complexity complexity) {
+  switch (complexity) {
+    case Complexity.easy:
+      return Colors.green;
+    case Complexity.medium:
+      return Colors.blue;
+    case Complexity.hard:
+      return Colors.orange;
+    case Complexity.veryHard:
+      return Colors.red;
   }
 }

@@ -54,7 +54,6 @@ class AuthController extends GetxController {
   void checkIfUserIsLoggedIn() async {
     final user = _auth.currentUser;
     // print('user: $user');
-
     if (user != null) {
       final userDoc = await _firestore.collection('users').doc(user.uid).get();
       if (userDoc.exists) {
