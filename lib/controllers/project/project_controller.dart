@@ -19,6 +19,13 @@ class ProjectController extends GetxController {
     projects.bindStream(fetchProjects());
   }
 
+  // @override
+  // void onReady() {
+  //   super.onReady();
+  //   projects.bindStream(fetchProjects());
+  //   print('askldjflaksjdf');
+  // }
+
   void sortProjects() {
     if (currentSort.value == 'status') {
       projects.sort((a, b) => a.status.index.compareTo(b.status.index));
@@ -51,7 +58,6 @@ class ProjectController extends GetxController {
       } else {
         projects.sort((a, b) => b.startDate.compareTo(a.startDate));
       }
-
       return projects;
     });
   }

@@ -37,7 +37,9 @@ class Task {
       endDate: (data['endDate'] as Timestamp).toDate(),
       status: Status.values.firstWhereOrNull((s) => s.name == data['status']) ??
           Status.notStarted,
-      priority: data['priority'],
+      priority:
+          Priority.values.firstWhereOrNull((p) => p.name == data['priority']) ??
+              Priority.low,
       assignTo: data['assignTo'],
       projectOwner: data['projectOwner'],
       complexity: Complexity.values

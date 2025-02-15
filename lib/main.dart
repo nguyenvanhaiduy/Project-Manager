@@ -6,6 +6,7 @@ import 'package:project_manager/bindings/auth_binding.dart';
 import 'package:project_manager/bindings/drawer_binding.dart';
 import 'package:project_manager/bindings/image_picker_binding.dart';
 import 'package:project_manager/bindings/language_binding.dart';
+import 'package:project_manager/bindings/task_binding.dart';
 import 'package:project_manager/bindings/theme_binding.dart';
 import 'package:project_manager/firebase_options.dart';
 import 'package:project_manager/utils/app_constants.dart';
@@ -50,10 +51,10 @@ class MyApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
-            backgroundColor: MaterialStateColor.resolveWith(
+            backgroundColor: WidgetStateColor.resolveWith(
               (states) => const Color.fromARGB(255, 91, 98, 143),
             ),
-            foregroundColor: MaterialStateColor.resolveWith(
+            foregroundColor: WidgetStateColor.resolveWith(
               (states) => Colors.white,
             ),
           ),
@@ -68,7 +69,7 @@ class MyApp extends StatelessWidget {
         ),
         textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
-            foregroundColor: MaterialStateColor.resolveWith(
+            foregroundColor: WidgetStateColor.resolveWith(
               (states) => Colors.black,
             ),
           ),
@@ -98,10 +99,10 @@ class MyApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
-            backgroundColor: MaterialStateColor.resolveWith(
+            backgroundColor: WidgetStateColor.resolveWith(
               (states) => const Color.fromARGB(255, 31, 57, 111), // Màu tối
             ),
-            foregroundColor: MaterialStateColor.resolveWith(
+            foregroundColor: WidgetStateColor.resolveWith(
               (states) => Colors.white, // Màu chữ
             ),
           ),
@@ -116,7 +117,7 @@ class MyApp extends StatelessWidget {
         ),
         textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
-            foregroundColor: MaterialStateColor.resolveWith(
+            foregroundColor: WidgetStateColor.resolveWith(
               (states) => Colors.white,
             ),
           ),
@@ -128,6 +129,7 @@ class MyApp extends StatelessWidget {
         DrawerBinding().dependencies();
         LanguageBinding().dependencies();
         ImagePickerBinding().dependencies();
+        TaskBinding().dependencies();
         // AppwriteBinding().dependencies();
       }),
       home: const SplashScreen(),

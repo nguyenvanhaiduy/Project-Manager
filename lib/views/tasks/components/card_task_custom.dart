@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:project_manager/models/task.dart';
 
 class CardTaskCustom extends StatelessWidget {
-  const CardTaskCustom({super.key});
+  const CardTaskCustom({super.key, required this.task});
+  final Task task;
 
   @override
   Widget build(BuildContext context) {
@@ -26,29 +29,29 @@ class CardTaskCustom extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 6),
-              const Column(
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Name',
-                    style: TextStyle(
+                    task.title,
+                    style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    '9:00 - 2024-06-01',
+                    DateFormat('MM/dd/yyyy, HH:mm').format(task.startDate),
                     style: TextStyle(),
                   )
                 ],
               ),
             ],
           ),
-          const Positioned(
+          Positioned(
             bottom: 0,
             right: 0,
-            child: Text('In progress'),
+            child: Text(task.status.name.tr),
           ),
         ],
       ),

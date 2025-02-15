@@ -3,13 +3,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
+import 'package:project_manager/models/project.dart';
 import 'package:project_manager/models/task.dart';
 import 'package:project_manager/views/widgets/loading_overlay.dart';
 
 class TaskController extends GetxController {
+  TaskController({this.currentProject});
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final AuthController _authController = Get.find();
   RxList<Task> tasks = <Task>[].obs;
+
+  Rx<Project>? currentProject;
 
   @override
   void onInit() {
@@ -17,14 +22,31 @@ class TaskController extends GetxController {
     tasks.bindStream(fetchData());
   }
 
-  Stream<List<Task>> fetchData() {
-    Query query = _firestore
-        .collection('tasks')
-        .where('assignTo', isEqualTo: _authController.currentUser.value!.id);
+  void updateCurrentProject(Project project) {
+    currentProject = project.obs;
+  }
 
-    return query.snapshots().map((snapshot) => snapshot.docs
-        .map((doc) => Task.fromMap(data: doc.data() as Map<String, dynamic>))
-        .toList());
+  Stream<List<Task>> fetchData() {
+    if (currentProject == null) {
+      return Stream.value([]);
+    }
+    return _firestore
+        .collection('tasks')
+        .where('projectOwner', isEqualTo: currentProject!.value.id)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) {
+              return Task.fromMap(data: doc.data());
+            }).toList());
+  }
+
+  Stream<List<Task>> yourFetchTask() {
+    return _firestore
+        .collection('tasks')
+        .where('assignTo', isEqualTo: _authController.currentUser.value!.id)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Task.fromMap(data: doc.data()))
+            .toList());
   }
 
   Future<void> addTask(Task task) async {
@@ -32,7 +54,7 @@ class TaskController extends GetxController {
     LoadingOverlay.show();
     try {
       await _firestore.collection('tasks').doc(task.id).set(task.toMap());
-      tasks.add(task);
+      // tasks.add(task);
       await LoadingOverlay.hide();
       Get.back();
       Get.snackbar('Success', 'Add task success', colorText: Colors.green);

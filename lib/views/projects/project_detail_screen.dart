@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:project_manager/bindings/task_binding.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/controllers/project/progress_project_controller.dart';
 import 'package:project_manager/controllers/project/project_controller.dart';
@@ -15,7 +14,7 @@ import 'package:project_manager/models/user.dart';
 import 'package:project_manager/utils/color_utils.dart';
 import 'package:project_manager/views/projects/components/build_avatar.dart';
 import 'package:project_manager/views/tasks/table_of_mission_screen.dart';
-import 'package:project_manager/views/tasks/task_screen.dart';
+import 'package:project_manager/views/tasks/your_task_screen.dart';
 import 'package:project_manager/views/widgets/widgets.dart';
 
 class ProjectDetailScreen extends StatelessWidget {
@@ -30,12 +29,15 @@ class ProjectDetailScreen extends StatelessWidget {
   final _formKey1 = GlobalKey<FormState>();
   final _formKey = GlobalKey<FormState>();
   final ProjectController projectController = Get.find();
-  final RxList<String> listUserIds = <String>[].obs;
-  final TextEditingController emailController = TextEditingController();
+
+  final emailController = TextEditingController();
 
   final progressProjectController = Get.put(
     ProgressProjectController(targetValue: 0.2),
   );
+
+  late final RxList<String> listUserIds;
+  late final RxList<String> listUserIdsCopy;
 
   Future<void> confirmDeleteUser(String name, String id) async {
     await Get.dialog(
@@ -96,11 +98,14 @@ class ProjectDetailScreen extends StatelessWidget {
                                 // backgroundColor: Colors.white,
                                 ),
                             onPressed: () {
-                              print(listUserIds.length);
+                              print(listUserIdsCopy.length);
 
-                              listUserIds.remove(id);
+                              listUserIdsCopy.remove(id);
                               Get.back();
-                              print(listUserIds.length);
+                              print(
+                                  "listUserIds.length: ${listUserIds.length}");
+                              print(
+                                  'listUserIdsCopy.length: ${listUserIdsCopy.length}');
                             },
                             child: Text('yes'.tr),
                           ),
@@ -117,21 +122,28 @@ class ProjectDetailScreen extends StatelessWidget {
     );
   }
 
+  void onInit() {}
+
   @override
   Widget build(BuildContext context) {
+    listUserIds = <String>[].obs;
+    listUserIdsCopy = <String>[].obs;
     final isOwner = project.owner == authController.currentUser.value!.id;
-    final TextEditingController titleController =
-        TextEditingController(text: project.title);
-    final TextEditingController descriptionController =
+    late final titleController = TextEditingController(text: project.title);
+    late final descriptionController =
         TextEditingController(text: project.description);
-    final TextEditingController startDateController = TextEditingController(
+    late final startDateController = TextEditingController(
         text: DateFormat('MM/dd/yyyy, HH:mm').format(project.startDate));
-    final TextEditingController dueDateController = TextEditingController(
+    late final dueDateController = TextEditingController(
         text: DateFormat('MM/dd/yyyy, HH:mm').format(project.endDate));
 
-    RxInt selectStatusIndex = project.status.index.obs;
-    RxInt selectPriorityIndex = project.priority.index.obs;
+    late final selectStatusIndex = project.status.index.obs;
+    late final selectPriorityIndex = project.priority.index.obs;
     listUserIds.value = project.userIds.obs;
+    listUserIdsCopy.addAll(listUserIds);
+    print("listUserIdsCopy.length: ${listUserIdsCopy.length}");
+    print('gọi lần 1');
+    onInit();
 
     void changeStatusIndex(int value) {
       selectStatusIndex.value = value;
@@ -147,7 +159,8 @@ class ProjectDetailScreen extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () {
-              Get.to(() => TaskScreen(), binding: TaskBinding());
+              print('project detail binding id: ${project.id}');
+              Get.to(() => YourTaskScreen());
             },
             icon: const Icon(Icons.pending_actions_outlined, size: 30),
             tooltip: 'your task'.tr,
@@ -355,8 +368,8 @@ class ProjectDetailScreen extends StatelessWidget {
                           fit: StackFit.expand,
                           alignment: Alignment.centerRight,
                           children: [
-                            for (int i = 0; i <= listUserIds.length; i++)
-                              if (i == listUserIds.length)
+                            for (int i = 0; i <= listUserIdsCopy.length; i++)
+                              if (i == listUserIdsCopy.length)
                                 if (isOwner)
                                   Positioned(
                                     right: i * 24,
@@ -389,8 +402,9 @@ class ProjectDetailScreen extends StatelessWidget {
                                                           'enter user email'.tr,
                                                     ),
                                                     validator: (value) {
-                                                      final user = listUserIds
-                                                          .firstWhereOrNull(
+                                                      final user =
+                                                          listUserIdsCopy
+                                                              .firstWhereOrNull(
                                                         (email) =>
                                                             email ==
                                                             emailController
@@ -425,13 +439,13 @@ class ProjectDetailScreen extends StatelessWidget {
                                                                     email: emailController
                                                                         .text);
                                                         if (user != null) {
-                                                          if (!listUserIds
+                                                          if (!listUserIdsCopy
                                                               .contains(
                                                                   user.id)) {
                                                             emailController
                                                                 .clear();
                                                             Get.back();
-                                                            listUserIds
+                                                            listUserIdsCopy
                                                                 .add(user.id);
                                                           } else {
                                                             Get.snackbar(
@@ -480,7 +494,7 @@ class ProjectDetailScreen extends StatelessWidget {
                               else
                                 StreamBuilder<User?>(
                                   stream: Stream.fromFuture(projectController
-                                      .getUser(userId: listUserIds[i])),
+                                      .getUser(userId: listUserIdsCopy[i])),
                                   builder: (context, snapshot) {
                                     if (snapshot.connectionState ==
                                         ConnectionState.waiting) {
@@ -630,11 +644,8 @@ class ProjectDetailScreen extends StatelessWidget {
                                     : const Color.fromARGB(255, 207, 234, 248),
                               ),
                               onPressed: () {
-                                Get.to(
-                                    () => TableOfMissionScreen(
-                                          project: project,
-                                        ),
-                                    binding: TaskBinding());
+                                print('project detail id: ${project.id}');
+                                Get.to(() => TableOfMissionScreen());
                               },
                               child: Text(
                                 'view details'.tr,
@@ -697,7 +708,7 @@ class ProjectDetailScreen extends StatelessWidget {
                               endDate: DateFormat('MM/dd/yyyy, HH:mm')
                                   .parse(dueDateController.text),
                               taskIds: project.taskIds,
-                              userIds: listUserIds,
+                              userIds: listUserIdsCopy,
                               // attachments: [],
                               owner: project.owner,
                             ),

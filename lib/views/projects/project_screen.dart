@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/controllers/project/project_controller.dart';
+import 'package:project_manager/controllers/task/task_controller.dart';
 import 'package:project_manager/views/drawer/custom_drawer.dart';
 import 'package:project_manager/views/projects/add_project_screen.dart';
 import 'package:project_manager/views/projects/project_detail_screen.dart';
@@ -13,6 +14,7 @@ class ProjectScreen extends StatelessWidget {
 
   final ProjectController projectController = Get.find();
   final AuthController authController = Get.find();
+  final TaskController taskController = Get.find();
 
   List<Widget> showMenu() {
     return [
@@ -76,6 +78,9 @@ class ProjectScreen extends StatelessWidget {
                                 return CardProjectCustom(
                                   project: projectController.projects[index],
                                   onTap: () {
+                                    taskController.updateCurrentProject(
+                                        projectController.projects[index]);
+
                                     Get.to(() => ProjectDetailScreen(
                                           project:
                                               projectController.projects[index],
@@ -97,6 +102,9 @@ class ProjectScreen extends StatelessWidget {
                                 return CardProjectCustom(
                                   project: projectController.projects[index],
                                   onTap: () {
+                                    taskController.updateCurrentProject(
+                                        projectController.projects[index]);
+
                                     Get.to(
                                       () => ProjectDetailScreen(
                                         project:

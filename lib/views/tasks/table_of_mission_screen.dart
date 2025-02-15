@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:project_manager/bindings/task_binding.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/controllers/task/task_controller.dart';
-import 'package:project_manager/models/project.dart';
 import 'package:project_manager/views/tasks/add_task_screen.dart';
 import 'package:project_manager/views/tasks/components/card_task_custom.dart';
 
 class TableOfMissionScreen extends StatelessWidget {
-  TableOfMissionScreen({super.key, required this.project});
-  final Project project;
+  TableOfMissionScreen({super.key});
 
-  final TaskController _taskController = Get.find();
-  final AuthController _authController = Get.find();
+  final AuthController authController = Get.find();
+  final TaskController taskController = Get.find();
 
   @override
   Widget build(BuildContext context) {
-    final isOwner = project.owner == _authController.currentUser.value!.id;
-    print(project.owner);
-    print(_authController.currentUser.value!.id);
+    final project = taskController.currentProject!.value;
+    taskController.tasks.bindStream(taskController.fetchData());
+    final isOwner = project.owner == authController.currentUser.value!.id;
 
     return Scaffold(
       appBar: AppBar(
@@ -27,23 +24,26 @@ class TableOfMissionScreen extends StatelessWidget {
         ),
       ),
       body: Obx(
-        () => _taskController.tasks.isEmpty
+        () => taskController.tasks.isEmpty
             ? Center(
                 child: Text('oh!!!. We don\'t have any tasks yet'.tr),
               )
             : ListView.separated(
-                itemCount: _taskController.tasks.length,
+                itemCount: taskController.tasks.length,
                 separatorBuilder: (context, index) =>
                     const SizedBox(height: 10),
                 itemBuilder: (context, index) {
-                  return const CardTaskCustom();
+                  return CardTaskCustom(
+                    task: taskController.tasks[index],
+                  );
                 }),
       ),
       floatingActionButton: isOwner
           ? FloatingActionButton(
               onPressed: () {
-                Get.to(() => AddTaskScreen(project: project),
-                    binding: TaskBinding());
+                print('project table misssion id: ${project.id}');
+
+                Get.to(() => AddTaskScreen(project: project));
               },
               tooltip: 'add'.tr,
               backgroundColor: Colors.blue,
