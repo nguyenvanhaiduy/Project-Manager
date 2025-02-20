@@ -77,14 +77,10 @@ class ProjectScreen extends StatelessWidget {
                               itemBuilder: (context, index) {
                                 return CardProjectCustom(
                                   project: projectController.projects[index],
-                                  onTap: () {
-                                    taskController.updateCurrentProject(
+                                  onTap: () async {
+                                    await taskController.updateCurrentProject(
                                         projectController.projects[index]);
-
-                                    Get.to(() => ProjectDetailScreen(
-                                          project:
-                                              projectController.projects[index],
-                                        ));
+                                    Get.to(() => ProjectDetailScreen());
                                   },
                                 );
                               },
@@ -101,16 +97,10 @@ class ProjectScreen extends StatelessWidget {
                               itemBuilder: (context, index) {
                                 return CardProjectCustom(
                                   project: projectController.projects[index],
-                                  onTap: () {
-                                    taskController.updateCurrentProject(
+                                  onTap: () async {
+                                    await taskController.updateCurrentProject(
                                         projectController.projects[index]);
-
-                                    Get.to(
-                                      () => ProjectDetailScreen(
-                                        project:
-                                            projectController.projects[index],
-                                      ),
-                                    );
+                                    Get.to(() => ProjectDetailScreen());
                                   },
                                 );
                               },

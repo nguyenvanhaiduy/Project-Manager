@@ -8,13 +8,13 @@ import 'package:project_manager/models/task.dart';
 import 'package:project_manager/views/widgets/loading_overlay.dart';
 
 class TaskController extends GetxController {
-  TaskController({this.currentProject});
+  TaskController();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final AuthController _authController = Get.find();
   RxList<Task> tasks = <Task>[].obs;
 
-  Rx<Project>? currentProject;
+  Rxn<Project> currentProject = Rxn<Project>(); // Khởi tạo Rxn<Project>
 
   @override
   void onInit() {
@@ -22,17 +22,14 @@ class TaskController extends GetxController {
     tasks.bindStream(fetchData());
   }
 
-  void updateCurrentProject(Project project) {
-    currentProject = project.obs;
+  Future<void> updateCurrentProject(Project project) async {
+    currentProject.value = project;
   }
 
   Stream<List<Task>> fetchData() {
-    if (currentProject == null) {
-      return Stream.value([]);
-    }
     return _firestore
         .collection('tasks')
-        .where('projectOwner', isEqualTo: currentProject!.value.id)
+        .where('projectOwner', isEqualTo: currentProject.value?.id)
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {
               return Task.fromMap(data: doc.data());

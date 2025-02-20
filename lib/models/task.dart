@@ -18,7 +18,7 @@ class Task {
   Task(
       {String? id,
       required this.title,
-      required this.description,
+      String? description,
       required this.startDate,
       required this.endDate,
       required this.status,
@@ -26,7 +26,8 @@ class Task {
       required this.assignTo,
       required this.projectOwner,
       required this.complexity})
-      : id = id ?? const Uuid().v4();
+      : id = id ?? const Uuid().v4(),
+        description = description ?? '';
 
   factory Task.fromMap({required Map<String, dynamic> data}) {
     return Task(

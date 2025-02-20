@@ -68,7 +68,9 @@ Widget customTextField(
   IconData icon,
   String? Function(String?) onValid,
   ThemeController themeController, {
-  Function()? onTap,
+  RxString? textValue,
+  Function()?
+      onTap, // để kiểm tra xem nếu bạn là chủ dự án thì có quyền chỉnh sửa
   bool? obscureText = false,
   IconData? suffixIcon,
   TextInputType keyboardType = TextInputType.text,
@@ -108,6 +110,7 @@ Widget customTextField(
                 obscureText: obscureText ?? false,
                 keyboardType: keyboardType,
                 onTap: onTap,
+                onChanged: (value) => textValue?.value = value,
                 style: TextStyle(
                     color: Theme.of(Get.context!).brightness == Brightness.light
                         ? Colors.black
@@ -172,6 +175,26 @@ Widget customTextFieldVerify(
       inputFormatters: [
         LengthLimitingTextInputFormatter(1),
         FilteringTextInputFormatter.digitsOnly,
+      ],
+    ),
+  );
+}
+
+Future<void> customDialogConfirm(Function() nextPage) async {
+  return await Get.dialog(
+    AlertDialog(
+      title: Text('confirm exit'.tr),
+      content:
+          Text('you have unsaved changes. are you sure you want to exit?'.tr),
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(result: false),
+          child: Text('no'.tr),
+        ),
+        TextButton(
+          onPressed: nextPage,
+          child: Text('yes'.tr),
+        ),
       ],
     ),
   );

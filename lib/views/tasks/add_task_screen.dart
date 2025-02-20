@@ -42,7 +42,6 @@ class AddTaskScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('listUsers length2: ${project.userIds}');
     getUsers();
     return Scaffold(
         appBar: AppBar(
@@ -56,7 +55,6 @@ class AddTaskScreen extends StatelessWidget {
                   child: CircularProgressIndicator(),
                 );
               } else if (snapshot.hasError) {
-                print('Error: ${snapshot.error}');
                 return Center(
                   child: Text('Error: ${snapshot.error}'),
                 );
@@ -74,6 +72,7 @@ class AddTaskScreen extends StatelessWidget {
                                   : Colors.white,
                               borderRadius: BorderRadius.circular(20)),
                           child: TextFormField(
+                            autofocus: true,
                             controller: titleController,
                             decoration: InputDecoration(
                               hintText: 'enter task name'.tr,
@@ -103,12 +102,14 @@ class AddTaskScreen extends StatelessWidget {
                               border: const OutlineInputBorder(
                                   borderSide: BorderSide.none),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'you must enter task description'.tr;
-                              }
-                              return null;
-                            },
+                            maxLines: null, // This allows multiple lines
+
+                            // validator: (value) {
+                            //   if (value == null || value.isEmpty) {
+                            //     return 'you must enter task description'.tr;
+                            //   }
+                            //   return null;
+                            // },
                           ),
                         ),
                         const SizedBox(height: 25),
@@ -483,6 +484,7 @@ class AddTaskScreen extends StatelessWidget {
                                                       //     '${user.name} added to project',
                                                       //     colorText: Colors.green);
                                                     } else {
+                                                      Get.closeAllSnackbars();
                                                       Get.snackbar('Error',
                                                           'This account has not been added to the project',
                                                           colorText:
