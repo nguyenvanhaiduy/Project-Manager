@@ -125,13 +125,13 @@ class TableOfMissionScreen extends StatelessWidget {
                           ),
                           const Divider(), // Add a divider for visual separation
                           _buildDetailRowWithExpansion(
-                              'Description:', task.description),
+                              '${'description'.tr}:', task.description),
                           _buildDetailRow(
-                              'Start Date:',
+                              '${'start date'.tr}:',
                               DateFormat('MM/dd/yyyy, HH:mm')
                                   .format(task.startDate)),
                           _buildDetailRow(
-                              'Due Date:',
+                              '${'due date'.tr}:',
                               DateFormat('MM/dd/yyyy, HH:mm')
                                   .format(task.endDate)),
                           FutureBuilder(
@@ -140,16 +140,19 @@ class TableOfMissionScreen extends StatelessWidget {
                             builder: (context, snapshot) {
                               String assignedTo = snapshot.connectionState ==
                                       ConnectionState.waiting
-                                  ? 'Loading...'
+                                  ? '...'
                                   : (snapshot.data?.name ??
-                                      'Unknown'); // Use null-aware operator
-                              return _buildDetailRow('Assign to:', assignedTo);
+                                      'unknown'.tr); // Use null-aware operator
+                              return _buildDetailRow(
+                                  '${'assigned to'.tr}:', assignedTo);
                             },
                           ),
-                          _buildDetailRow('Status:', task.status.name.tr),
-                          _buildDetailRow('Priority:', task.priority.name.tr),
-                          _buildDetailRow('Complex:', task.complexity.name.tr),
-
+                          _buildDetailRow(
+                              '${'status'.tr}:', task.status.name.tr),
+                          _buildDetailRow(
+                              '${'priority'.tr}:', task.priority.name.tr),
+                          _buildDetailRow(
+                              '${'complex'.tr}:', task.complexity.name.tr),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 10),
                             child: Row(
@@ -171,7 +174,7 @@ class TableOfMissionScreen extends StatelessWidget {
                                   onPressed: () async {
                                     // taskController.deleteTask(task.id);
                                   },
-                                  child: const Text('Claim'),
+                                  child: Text('claim'.tr),
                                 ),
                               ],
                             ),

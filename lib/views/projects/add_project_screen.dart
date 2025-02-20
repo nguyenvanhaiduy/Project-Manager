@@ -307,7 +307,7 @@ class AddProjectScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      'assigned for'.tr,
+                      'assigned to'.tr,
                       style: Get.textTheme.bodyLarge!.copyWith(
                         fontWeight: FontWeight.bold,
                       ),

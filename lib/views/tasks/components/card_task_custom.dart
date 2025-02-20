@@ -33,7 +33,9 @@ class CardTaskCustom extends StatelessWidget {
               width: 50,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
-                color: const Color.fromRGBO(244, 67, 54, 1),
+                color: task.assignTo == ''
+                    ? const Color.fromRGBO(244, 67, 54, 1)
+                    : Colors.green,
               ),
             ),
             const SizedBox(height: 10),
@@ -58,12 +60,14 @@ class CardTaskCustom extends StatelessWidget {
             FutureBuilder(
               future: projectController.getUser(userId: task.assignTo),
               builder: (context, snapshot) {
-                String assignedTo = snapshot.connectionState ==
-                        ConnectionState.waiting
-                    ? ''
-                    : (snapshot.data != null ? snapshot.data!.name : 'Unknown');
+                String assignedTo =
+                    snapshot.connectionState == ConnectionState.waiting
+                        ? ''
+                        : (snapshot.data != null
+                            ? snapshot.data!.name
+                            : 'unknown'.tr);
                 return Text(
-                  'Assigned to: $assignedTo',
+                  '${'assigned to'.tr}: $assignedTo',
                   style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -73,16 +77,17 @@ class CardTaskCustom extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Status: ${task.status.name.tr}',
+              '${'status'.tr}: ${task.status.name.tr}',
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
+                overflow: TextOverflow.ellipsis,
                 color: Colors.blue,
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Priority: ${task.priority.name.tr}',
+              '${'priority'.tr}: ${task.priority.name.tr}',
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -91,7 +96,7 @@ class CardTaskCustom extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Complex: ${task.complexity.name.tr}',
+              '${'complex'.tr}: ${task.complexity.name.tr}',
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,

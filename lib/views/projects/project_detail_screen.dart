@@ -375,7 +375,7 @@ class ProjectDetailScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'assigned for'.tr,
+                        'assigned to'.tr,
                         style: Get.textTheme.bodyLarge!
                             .copyWith(fontWeight: FontWeight.bold),
                       ),

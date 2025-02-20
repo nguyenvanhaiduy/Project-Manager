@@ -32,7 +32,7 @@ class AddTaskScreen extends StatelessWidget {
   final AddProjectController addProjectController =
       Get.put(AddProjectController());
   final RxList<User?> listUsers = <User?>[].obs;
-  final RxList<User> assignFors = <User>[].obs;
+  final RxList<User?> assignFors = <User>[].obs;
 
   Future<void> getUsers() async {
     final users = await Future.wait(
@@ -342,7 +342,7 @@ class AddTaskScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 10),
                               Text(
-                                'assigned for'.tr,
+                                'assigned to'.tr,
                                 style: Get.textTheme.bodyLarge!.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -362,7 +362,7 @@ class AddTaskScreen extends StatelessWidget {
                                       scrollDirection: Axis.horizontal,
                                       itemCount: assignFors.length,
                                       itemBuilder: (context, index) {
-                                        final user = assignFors[index];
+                                        final user = assignFors[index]!;
                                         return Stack(
                                           children: [
                                             user.imageUrl != null
@@ -444,7 +444,7 @@ class AddTaskScreen extends StatelessWidget {
                                                 validator: (value) {
                                                   final user = assignFors
                                                       .firstWhereOrNull((user) {
-                                                    return user.email ==
+                                                    return user?.email ==
                                                         emailController.text;
                                                   });
                                                   if (value == null ||
@@ -593,7 +593,7 @@ class AddTaskScreen extends StatelessWidget {
                                   status: Status.notStarted,
                                   priority: Priority.values[addProjectController
                                       .selectedPriority.value],
-                                  assignTo: listUsers.first?.id ?? '',
+                                  assignTo: assignFors.first?.id ?? '',
                                   projectOwner: project.id,
                                   complexity: Complexity.values[
                                       addProjectController
