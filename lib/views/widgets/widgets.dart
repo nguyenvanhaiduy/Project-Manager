@@ -180,22 +180,31 @@ Widget customTextFieldVerify(
   );
 }
 
-Future<void> customDialogConfirm(Function() nextPage) async {
-  return await Get.dialog(
+Future<bool> customDialogConfirm(String title, Function() nextPage) async {
+  bool shouldPop = false;
+  await Get.dialog(
+    barrierDismissible: false,
     AlertDialog(
-      title: Text('confirm exit'.tr),
-      content:
-          Text('you have unsaved changes. are you sure you want to exit?'.tr),
+      title: Text('confirm'.tr),
+      content: Text(title.tr),
       actions: [
         TextButton(
-          onPressed: () => Get.back(result: false),
+          onPressed: () {
+            shouldPop = false;
+            Get.back(result: false);
+          },
           child: Text('no'.tr),
         ),
         TextButton(
-          onPressed: nextPage,
+          onPressed: () {
+            Get.back();
+            nextPage();
+            shouldPop = true;
+          },
           child: Text('yes'.tr),
         ),
       ],
     ),
   );
+  return shouldPop;
 }

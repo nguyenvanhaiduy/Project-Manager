@@ -8,8 +8,6 @@ import 'package:project_manager/models/task.dart';
 import 'package:project_manager/views/widgets/loading_overlay.dart';
 
 class TaskController extends GetxController {
-  TaskController();
-
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final AuthController _authController = Get.find();
   RxList<Task> tasks = <Task>[].obs;
@@ -39,6 +37,7 @@ class TaskController extends GetxController {
   Stream<List<Task>> yourFetchTask() {
     return _firestore
         .collection('tasks')
+        .where('projectOwner', isEqualTo: currentProject.value!.id)
         .where('assignTo', isEqualTo: _authController.currentUser.value!.id)
         .snapshots()
         .map((snapshot) => snapshot.docs
@@ -54,7 +53,8 @@ class TaskController extends GetxController {
       // tasks.add(task);
       await LoadingOverlay.hide();
       Get.back();
-      Get.snackbar('Success', 'Add task success', colorText: Colors.green);
+      Get.snackbar('Success', 'Add task success',
+          colorText: Colors.green, duration: const Duration(milliseconds: 300));
     } catch (e) {
       if (kDebugMode) print('Add task with error: $e');
       await LoadingOverlay.hide();
@@ -68,8 +68,9 @@ class TaskController extends GetxController {
     try {
       await _firestore.collection('tasks').doc(task.id).update(task.toMap());
       await LoadingOverlay.hide();
-      Get.back();
-      Get.snackbar('Success', 'Update task success', colorText: Colors.green);
+      // Get.back();
+      Get.snackbar('Success', 'Update task success',
+          colorText: Colors.green, duration: const Duration(milliseconds: 900));
     } catch (e) {
       if (kDebugMode) print('Update task with error: $e');
       await LoadingOverlay.hide();
@@ -88,7 +89,7 @@ class TaskController extends GetxController {
         'Success',
         'Delete task success',
         colorText: Colors.green,
-        duration: const Duration(milliseconds: 600),
+        duration: const Duration(milliseconds: 300),
       );
     } catch (e) {
       if (kDebugMode) print('Delete task with error: $e');
@@ -100,5 +101,21 @@ class TaskController extends GetxController {
         duration: const Duration(seconds: 2),
       );
     }
+  }
+
+  double calculateProgress() {
+    double progress = 0;
+    int totalTaskDone = tasks
+        .where((task) => (task.status.name == 'completed' ||
+            task.status.name == 'lateCompleted'))
+        .length;
+    int totalTaskInProgress =
+        tasks.where((task) => task.status.name == 'inProgress').length;
+    if (tasks.isNotEmpty) {
+      progress =
+          ((totalTaskDone * 100 + totalTaskInProgress * 50) / tasks.length) /
+              100;
+    }
+    return progress;
   }
 }

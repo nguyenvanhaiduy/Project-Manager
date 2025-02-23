@@ -57,6 +57,7 @@ class Task {
       'startDate': Timestamp.fromDate(startDate),
       'endDate': Timestamp.fromDate(endDate),
       'status': status.name,
+      'priority': priority.name,
       'assignTo': assignTo,
       'projectOwner': projectOwner,
       'complexity': complexity.name,

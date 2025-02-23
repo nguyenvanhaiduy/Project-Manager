@@ -59,7 +59,7 @@ class ImagePickerController extends GetxController {
                       children: [
                         customTextButton(
                           child: const Icon(Icons.photo_library),
-                          title: 'galery'.tr,
+                          title: 'gallery'.tr,
                           onPress: () {
                             pickImage(ImageSource.gallery);
                             Get.back();
@@ -80,7 +80,7 @@ class ImagePickerController extends GetxController {
                         ),
                         customTextButton(
                           child: const Icon(Icons.photo_library),
-                          title: 'galery'.tr,
+                          title: 'gallery'.tr,
                           onPress: () {
                             pickImage(ImageSource.gallery);
                             Get.back();

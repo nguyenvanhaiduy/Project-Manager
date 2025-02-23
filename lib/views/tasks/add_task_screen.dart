@@ -12,40 +12,87 @@ import 'package:project_manager/models/user.dart';
 import 'package:project_manager/utils/color_utils.dart';
 import 'package:uuid/uuid.dart';
 
+// ignore: must_be_immutable
 class AddTaskScreen extends StatelessWidget {
-  AddTaskScreen({super.key, required this.project});
+  AddTaskScreen({
+    super.key,
+    required this.project,
+    required this.isAddTask,
+    this.task,
+  });
   final Project project;
+  final bool isAddTask; // false is edit task
+  final Task? task;
 
   final _formKey = GlobalKey<FormState>();
   final _formKey1 = GlobalKey<FormState>();
-  final taskID = const Uuid().v4();
-
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
-  final TextEditingController startDateController = TextEditingController();
-  final TextEditingController dueDateController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
 
   final ProjectController projectController = Get.find();
   final AuthController authController = Get.find();
   final TaskController taskController = Get.find();
   final AddProjectController addProjectController =
       Get.put(AddProjectController());
-  final RxList<User?> listUsers = <User?>[].obs;
-  final RxList<User?> assignFors = <User>[].obs;
 
-  Future<void> getUsers() async {
-    final users = await Future.wait(
-        project.userIds.map((id) => projectController.getUser(userId: id)));
-    listUsers.assignAll(users); // Chuyển thành RxList<User?>
-  }
+  late final taskID = const Uuid().v4();
+  late final TextEditingController titleController;
+  late final TextEditingController descriptionController;
+  late final TextEditingController startDateController;
+  late final TextEditingController dueDateController;
+  late final TextEditingController emailController;
+  late RxInt selectedStatus;
+  late RxInt selectedPriority;
+  late RxInt selectedComplexity;
 
   @override
   Widget build(BuildContext context) {
-    getUsers();
+    final RxList<User> assignFors = <User>[].obs;
+
+    Future<void> getAssignUser() async {
+      final user = await projectController.getUser(userId: task!.assignTo);
+      if (user != null) {
+        assignFors.add(user);
+      }
+    }
+
+    if (isAddTask) {
+      titleController = TextEditingController();
+      descriptionController = TextEditingController();
+      startDateController = TextEditingController();
+      dueDateController = TextEditingController();
+      emailController = TextEditingController();
+      selectedStatus = 0.obs;
+      selectedPriority = 0.obs;
+      selectedComplexity = 0.obs;
+    } else {
+      if (task != null) {
+        titleController = TextEditingController(text: task!.title);
+        descriptionController = TextEditingController(text: task!.description);
+        startDateController = TextEditingController(
+            text: DateFormat('MM/dd/yyyy, HH:mm').format(task!.startDate));
+        dueDateController = TextEditingController(
+            text: DateFormat('MM/dd/yyyy, HH:mm').format(task!.endDate));
+        emailController = TextEditingController();
+        selectedStatus = Status.values.indexOf(task!.status).obs;
+        selectedPriority = Priority.values.indexOf(task!.priority).obs;
+        selectedComplexity = Complexity.values.indexOf(task!.complexity).obs;
+        Future.wait([getAssignUser()]);
+      } else {
+        Get.snackbar(
+            'Error', 'You need to transmit the task to have edit task');
+      }
+    }
+
+    final RxList<User?> listUsers = <User?>[].obs;
+
+    Future<void> getUsers() async {
+      final users = await Future.wait(
+          project.userIds.map((id) => projectController.getUser(userId: id)));
+      listUsers.assignAll(users); // Chuyển thành RxList<User?>
+    }
+
     return Scaffold(
         appBar: AppBar(
-          title: Text('create task'.tr),
+          title: Text(isAddTask ? 'create task'.tr : 'edit task'.tr),
         ),
         body: FutureBuilder(
             future: getUsers(),
@@ -72,7 +119,7 @@ class AddTaskScreen extends StatelessWidget {
                                   : Colors.white,
                               borderRadius: BorderRadius.circular(20)),
                           child: TextFormField(
-                            autofocus: true,
+                            autofocus: isAddTask ? true : false,
                             controller: titleController,
                             decoration: InputDecoration(
                               hintText: 'enter task name'.tr,
@@ -119,7 +166,7 @@ class AddTaskScreen extends StatelessWidget {
                                 children: [
                                   _customWidget(
                                     icon: Icons.edit_calendar_outlined,
-                                    title: 'Start Date',
+                                    title: 'start date'.tr,
                                     color: Colors.yellow[700]!,
                                     controller: startDateController,
                                     onTap: () async {
@@ -164,7 +211,7 @@ class AddTaskScreen extends StatelessWidget {
                                   ),
                                   _customWidget(
                                     icon: Icons.edit_calendar_outlined,
-                                    title: 'Due Date',
+                                    title: 'due date'.tr,
                                     color: Colors.yellow[700]!,
                                     controller: dueDateController,
                                     onTap: () async {
@@ -362,7 +409,7 @@ class AddTaskScreen extends StatelessWidget {
                                       scrollDirection: Axis.horizontal,
                                       itemCount: assignFors.length,
                                       itemBuilder: (context, index) {
-                                        final user = assignFors[index]!;
+                                        final user = assignFors[index];
                                         return Stack(
                                           children: [
                                             user.imageUrl != null
@@ -444,7 +491,7 @@ class AddTaskScreen extends StatelessWidget {
                                                 validator: (value) {
                                                   final user = assignFors
                                                       .firstWhereOrNull((user) {
-                                                    return user?.email ==
+                                                    return user.email ==
                                                         emailController.text;
                                                   });
                                                   if (value == null ||
@@ -526,16 +573,16 @@ class AddTaskScreen extends StatelessWidget {
                             children: [
                               const SizedBox(width: 20),
                               _customLablePriority(context, Priority.low, () {
-                                addProjectController.changePriority(0);
+                                selectedPriority.value = 0;
                               }),
                               const SizedBox(width: 20),
                               _customLablePriority(context, Priority.medium,
                                   () {
-                                addProjectController.changePriority(1);
+                                selectedPriority.value = 1;
                               }),
                               const SizedBox(width: 20),
                               _customLablePriority(context, Priority.high, () {
-                                addProjectController.changePriority(2);
+                                selectedPriority.value = 2;
                               }),
                             ],
                           ),
@@ -557,22 +604,22 @@ class AddTaskScreen extends StatelessWidget {
                               const SizedBox(width: 20),
                               _customLabelComplexity(context, Complexity.easy,
                                   () {
-                                addProjectController.changeComplexity(0);
+                                selectedComplexity.value = 0;
                               }),
                               const SizedBox(width: 20),
                               _customLabelComplexity(context, Complexity.medium,
                                   () {
-                                addProjectController.changeComplexity(1);
+                                selectedComplexity.value = 1;
                               }),
                               const SizedBox(width: 20),
                               _customLabelComplexity(context, Complexity.hard,
                                   () {
-                                addProjectController.changeComplexity(2);
+                                selectedComplexity.value = 2;
                               }),
                               const SizedBox(width: 20),
                               _customLabelComplexity(
                                   context, Complexity.veryHard, () {
-                                addProjectController.changeComplexity(3);
+                                selectedComplexity.value = 3;
                               }),
                             ],
                           ),
@@ -583,38 +630,63 @@ class AddTaskScreen extends StatelessWidget {
                           child: TextButton(
                             onPressed: () async {
                               if (_formKey.currentState!.validate()) {
-                                await taskController.addTask(Task(
-                                  title: titleController.text,
-                                  description: descriptionController.text,
-                                  startDate: DateFormat('MM/dd/yyyy, HH:mm')
-                                      .parse(startDateController.text),
-                                  endDate: DateFormat('MM/dd/yyyy, HH:mm')
-                                      .parse(dueDateController.text),
-                                  status: Status.notStarted,
-                                  priority: Priority.values[addProjectController
-                                      .selectedPriority.value],
-                                  assignTo: assignFors.first?.id ?? '',
-                                  projectOwner: project.id,
-                                  complexity: Complexity.values[
-                                      addProjectController
-                                          .selectedComplexity.value],
-                                ));
-                                await projectController.updateProject(
-                                  Project(
-                                    id: project.id,
-                                    title: project.title,
-                                    description: project.description,
-                                    status: project.status,
-                                    priority: project.priority,
-                                    startDate: project.startDate,
-                                    endDate: project.endDate,
-                                    taskIds: taskController.tasks
-                                        .map((e) => e.id)
-                                        .toList(),
-                                    userIds: project.userIds,
-                                    owner: project.owner,
-                                  ),
-                                );
+                                Get.closeAllSnackbars();
+                                Future.delayed(
+                                    const Duration(milliseconds: 600));
+                                if (isAddTask) {
+                                  await taskController.addTask(Task(
+                                    title: titleController.text,
+                                    description: descriptionController.text,
+                                    startDate: DateFormat('MM/dd/yyyy, HH:mm')
+                                        .parse(startDateController.text),
+                                    endDate: DateFormat('MM/dd/yyyy, HH:mm')
+                                        .parse(dueDateController.text),
+                                    status: Status.notStarted,
+                                    priority:
+                                        Priority.values[selectedPriority.value],
+                                    assignTo: assignFors.isNotEmpty
+                                        ? assignFors.first.id
+                                        : '',
+                                    projectOwner: project.id,
+                                    complexity: Complexity
+                                        .values[selectedComplexity.value],
+                                  ));
+                                  await projectController.updateProject(
+                                    Project(
+                                      id: project.id,
+                                      title: project.title,
+                                      description: project.description,
+                                      status: project.status,
+                                      priority: project.priority,
+                                      startDate: project.startDate,
+                                      endDate: project.endDate,
+                                      taskIds: taskController.tasks
+                                          .map((e) => e.id)
+                                          .toList(),
+                                      userIds: project.userIds,
+                                      owner: project.owner,
+                                    ),
+                                  );
+                                } else {
+                                  await taskController.updateTask(Task(
+                                    id: task!.id,
+                                    title: titleController.text,
+                                    description: descriptionController.text,
+                                    startDate: DateFormat('MM/dd/yyyy, HH:mm')
+                                        .parse(startDateController.text),
+                                    endDate: DateFormat('MM/dd/yyyy, HH:mm')
+                                        .parse(dueDateController.text),
+                                    status: Status.values[selectedStatus.value],
+                                    priority:
+                                        Priority.values[selectedPriority.value],
+                                    assignTo: assignFors.isNotEmpty
+                                        ? assignFors.first.id
+                                        : '',
+                                    projectOwner: project.id,
+                                    complexity: Complexity
+                                        .values[selectedComplexity.value],
+                                  ));
+                                }
                               }
                             },
                             style: TextButton.styleFrom(
@@ -635,7 +707,7 @@ class AddTaskScreen extends StatelessWidget {
                               height: kIsWeb ? 50 : 40,
                               alignment: Alignment.center,
                               child: Text(
-                                'create task'.tr,
+                                isAddTask ? 'create task'.tr : 'update'.tr,
                                 style: Get.textTheme.bodyLarge!.copyWith(
                                     fontWeight: FontWeight.bold, fontSize: 18),
                               ),
@@ -660,9 +732,7 @@ class AddTaskScreen extends StatelessWidget {
       String? Function(String?)? onValidator,
       bool isTextField = true}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -684,7 +754,9 @@ class AddTaskScreen extends StatelessWidget {
                     readOnly: true,
                     controller: controller,
                     decoration: InputDecoration(
-                        border: InputBorder.none, hintText: hintText),
+                      border: InputBorder.none,
+                      hintText: title,
+                    ),
                     onTap: onTap,
                     validator: onValidator,
                   ),
@@ -713,7 +785,7 @@ class AddTaskScreen extends StatelessWidget {
           height: 40,
           decoration: BoxDecoration(
             border: Border.all(color: Colors.black, width: 1),
-            color: addProjectController.selectedPriority.value == priority.index
+            color: selectedPriority.value == priority.index
                 ? getPriorityColor(priority)
                 : null,
             borderRadius: BorderRadius.circular(15),
@@ -724,8 +796,7 @@ class AddTaskScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   fontWeight: FontWeight.w400,
                   fontSize: 15,
-                  color: addProjectController.selectedPriority.value ==
-                          priority.index
+                  color: selectedPriority.value == priority.index
                       ? Colors.black
                       : null,
                 ),
@@ -744,8 +815,7 @@ class AddTaskScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 15),
           decoration: BoxDecoration(
             border: Border.all(color: Colors.black, width: 1),
-            color: addProjectController.selectedComplexity.value ==
-                    complexity.index
+            color: selectedComplexity.value == complexity.index
                 ? getComplexityColor(complexity)
                 : null,
             borderRadius: BorderRadius.circular(15),
@@ -756,8 +826,7 @@ class AddTaskScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   fontWeight: FontWeight.w400,
                   fontSize: 15,
-                  color: addProjectController.selectedComplexity.value ==
-                          complexity.index
+                  color: selectedComplexity.value == complexity.index
                       ? Colors.black
                       : null,
                 ),

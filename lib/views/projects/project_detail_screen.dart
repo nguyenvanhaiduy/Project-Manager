@@ -34,8 +34,6 @@ class ProjectDetailScreen extends StatelessWidget {
 
   final emailController = TextEditingController();
 
-  final progressProjectController =
-      Get.put(ProgressProjectController(targetValue: 0.2));
   final TaskController taskController = Get.find();
 
   Future<void> confirmDeleteUser(String name, String id) async {
@@ -130,18 +128,23 @@ class ProjectDetailScreen extends StatelessWidget {
     final dueDateController =
         TextEditingController(text: projectDetailController.dueDate.value);
 
-    // final selectStatusIndex = project.status.index.obs;
-    // final selectPriorityIndex = project.priority.index.obs;
+    void updateTextControllers() {
+      titleController.text = projectDetailController.title.value;
+      descriptionController.text = projectDetailController.description.value;
+      startDateController.text = projectDetailController.startDate.value;
+      dueDateController.text = projectDetailController.dueDate.value;
+    }
 
-    // listUserIds.value = [];
+    // final progressProjectController = Get.put(ProgressProjectController());
 
     void closeController() {
+      // projectDetailController.dispose();
       // titleController.dispose();
       // descriptionController.dispose();
       // startDateController.dispose();
       // dueDateController.dispose();
       // projectDetailController.dispose();
-      // print('close all controller');
+      print('close all controller');
     }
 
     void changeStatusIndex(int value) {
@@ -158,7 +161,18 @@ class ProjectDetailScreen extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () {
-              Get.to(() => YourTaskScreen());
+              if (projectDetailController.hasChanges.value) {
+                customDialogConfirm(
+                    'you have unsaved changes. are you sure you want to exit?',
+                    () {
+                  Get.to(() => YourTaskScreen());
+                  print(projectDetailController.description);
+                  projectDetailController.revertChanges();
+                  updateTextControllers();
+                });
+              } else {
+                Get.to(() => YourTaskScreen());
+              }
             },
             icon: const Icon(Icons.pending_actions_outlined, size: 30),
             tooltip: 'your task'.tr,
@@ -166,7 +180,23 @@ class ProjectDetailScreen extends StatelessWidget {
         ],
       ),
       body: PopScope(
-        onPopInvokedWithResult: (didPop, result) => closeController(),
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return; // Already handled elsewhere
+          bool shouldPop;
+          if (projectDetailController.hasChanges.value) {
+            shouldPop = await customDialogConfirm(
+                'you have unsaved changes. are you sure you want to exit?', () {
+              projectDetailController.revertChanges();
+            });
+          } else {
+            shouldPop = true;
+          }
+          if (shouldPop) {
+            Get.back();
+            closeController();
+          }
+        },
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -237,6 +267,7 @@ class ProjectDetailScreen extends StatelessWidget {
                                   pickedTime?.hour ?? DateTime.now().hour,
                                   pickedTime?.minute ?? DateTime.now().minute,
                                 );
+
                                 startDateController.text =
                                     DateFormat('MM/dd/yyyy, HH:mm')
                                         .format(pickedDateTime);
@@ -381,7 +412,7 @@ class ProjectDetailScreen extends StatelessWidget {
                       ),
                       SizedBox(
                         height: 35,
-                        width: MediaQuery.of(context).size.width * 0.6,
+                        width: MediaQuery.of(context).size.width * 0.55,
                         child: Obx(
                           () => Stack(
                             fit: StackFit.expand,
@@ -688,18 +719,26 @@ class ProjectDetailScreen extends StatelessWidget {
                                   if (isOwner &&
                                       projectDetailController
                                           .hasChanges.value) {
-                                    customDialogConfirm(() {
+                                    customDialogConfirm(
+                                        'you have unsaved changes. are you sure you want to exit?',
+                                        () {
                                       if (Get.isDialogOpen != null &&
-                                          Get.isDialogOpen == true) {
+                                          Get.isDialogOpen!) {
                                         Get.back();
                                       }
                                       projectDetailController.revertChanges();
+                                      print(
+                                          projectDetailController.description);
+                                      updateTextControllers();
 
                                       Get.to(() => TableOfMissionScreen());
                                     });
                                   } else {
                                     Get.to(() => TableOfMissionScreen());
                                   }
+                                  // Get.find<ProgressProjectController>()
+                                  //     .currentValue
+                                  //     .value = 0;
                                 },
                                 child: Text(
                                   'view details'.tr,
@@ -711,34 +750,40 @@ class ProjectDetailScreen extends StatelessWidget {
                         ),
                       )),
                       Obx(
-                        () => Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SizedBox(
-                              height: 80,
-                              width: 80,
-                              child: CircularProgressIndicator(
-                                value: progressProjectController
-                                    .currentValue.value,
-                                strokeWidth: 20,
-                                semanticsValue: '1',
-                                backgroundColor: Get.isDarkMode
-                                    ? Colors.white24
-                                    : const Color.fromARGB(208, 229, 236, 241),
-                                valueColor: const AlwaysStoppedAnimation<Color>(
-                                  Color.fromARGB(255, 150, 221, 253),
+                        () {
+                          final progressProjectController =
+                              Get.find<ProgressProjectController>();
+                          return Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                height: 80,
+                                width: 80,
+                                child: CircularProgressIndicator(
+                                  value: progressProjectController
+                                      .currentValue.value,
+                                  strokeWidth: 20,
+                                  semanticsValue: '1',
+                                  backgroundColor: Get.isDarkMode
+                                      ? Colors.white24
+                                      : const Color.fromARGB(
+                                          208, 229, 236, 241),
+                                  valueColor:
+                                      const AlwaysStoppedAnimation<Color>(
+                                    Color.fromARGB(255, 150, 221, 253),
+                                  ),
                                 ),
                               ),
-                            ),
-                            Positioned(
-                              child: Text(
-                                '${(progressProjectController.currentValue.value * 100).toStringAsFixed(0)}%',
-                                style: Get.textTheme.bodyLarge!
-                                    .copyWith(fontWeight: FontWeight.bold),
+                              Positioned(
+                                child: Text(
+                                  '${(progressProjectController.currentValue.value * 100).toStringAsFixed(0)}%',
+                                  style: Get.textTheme.bodyLarge!
+                                      .copyWith(fontWeight: FontWeight.bold),
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          );
+                        },
                       ),
                       const SizedBox(width: 30),
                     ],

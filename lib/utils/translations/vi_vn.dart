@@ -125,4 +125,12 @@ const Map<String, String> viVn = {
   'your task': 'Nhiệm vụ của bạn',
   'task detail': 'Chi tiết nhiệm vụ',
   'create task': 'Tạo nhiệm vụ',
+  'you have unsaved changes. are you sure you want to exit?':
+      'Bạn có những thay đổi chưa được lưu. Bạn có chắc là bạn muốn thoát?',
+  'edit task': 'Chỉnh sửa nhiệm vụ',
+  'confirm exit': 'Xác nhận thoát',
+  'are you sure you want to accept this task?':
+      'Bạn có chắc chắn muốn nhận nhiệm vụ này chứ?',
+  'are you sure you want to delete this task?':
+      'Bạn có chắc muốn xoá nhiệm vụ này chứ?',
 };

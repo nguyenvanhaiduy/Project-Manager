@@ -127,5 +127,13 @@ const Map<String, String> enUs = {
   'project detail': 'Project Detail',
   'your task': 'Your task',
   'task detail': 'Task Detail',
-  'create task': 'Create Task'
+  'create task': 'Create Task',
+  'you have unsaved changes. are you sure you want to exit?':
+      'You have unsaved changes. are you sure you want to exit?',
+  'edit task': 'Edit Task',
+  'confirm exit': 'Confirm Exit',
+  'are you sure you want to accept this task?':
+      'Are you sure you want to accept this task?',
+  'are you sure you want to delete this task?':
+      'Are you sure you want to delete this task?',
 };

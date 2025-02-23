@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:project_manager/bindings/progress_project_binding.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/controllers/project/project_controller.dart';
 import 'package:project_manager/controllers/task/task_controller.dart';
@@ -69,8 +70,9 @@ class ProjectScreen extends StatelessWidget {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: (MediaQuery.of(context).size.width <= 640)
-                        ? Obx(() => ListView.separated(
+                    child: Obx(
+                      () => (MediaQuery.of(context).size.width <= 640)
+                          ? ListView.separated(
                               itemCount: projectController.projects.length,
                               separatorBuilder: (context, index) =>
                                   const SizedBox(height: 20),
@@ -80,12 +82,13 @@ class ProjectScreen extends StatelessWidget {
                                   onTap: () async {
                                     await taskController.updateCurrentProject(
                                         projectController.projects[index]);
-                                    Get.to(() => ProjectDetailScreen());
+                                    Get.to(() => ProjectDetailScreen(),
+                                        binding: ProgressProjectBinding());
                                   },
                                 );
                               },
-                            ))
-                        : Obx(() => GridView.builder(
+                            )
+                          : GridView.builder(
                               gridDelegate:
                                   SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: Get.size.width ~/ 400,
@@ -104,7 +107,8 @@ class ProjectScreen extends StatelessWidget {
                                   },
                                 );
                               },
-                            )),
+                            ),
+                    ),
                   ),
                 ),
               ],

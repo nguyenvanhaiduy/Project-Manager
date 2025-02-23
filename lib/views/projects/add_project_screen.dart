@@ -14,8 +14,6 @@ import 'package:uuid/uuid.dart';
 class AddProjectScreen extends StatelessWidget {
   AddProjectScreen({super.key});
 
-  // final bool isAddProject;
-
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController startDateController = TextEditingController();
@@ -102,7 +100,7 @@ class AddProjectScreen extends StatelessWidget {
                       children: [
                         _customWidget(
                           icon: Icons.edit_calendar_outlined,
-                          title: 'Start Date',
+                          title: 'start date'.tr,
                           color: Colors.yellow[700]!,
                           controller: startDateController,
                           onTap: () async {
@@ -194,10 +192,9 @@ class AddProjectScreen extends StatelessWidget {
                       children: [
                         _customWidget(
                           icon: Icons.edit_calendar_outlined,
-                          title: 'Start Date',
+                          title: 'start date'.tr,
                           color: Colors.yellow[700]!,
                           controller: startDateController,
-                          hintText: 'start date'.tr,
                           onTap: () async {
                             DateTime? pickedDate = await showDatePicker(
                               context: context,
@@ -238,10 +235,9 @@ class AddProjectScreen extends StatelessWidget {
                         const SizedBox(height: 10),
                         _customWidget(
                           icon: Icons.edit_calendar_outlined,
-                          title: 'Due Date',
+                          title: 'due date'.tr,
                           color: Colors.yellow[700]!,
                           controller: dueDateController,
-                          hintText: 'due date'.tr,
                           onTap: () async {
                             DateTime? pickedDate = await showDatePicker(
                               context: context,
@@ -547,7 +543,6 @@ class AddProjectScreen extends StatelessWidget {
       {required IconData icon,
       required String title,
       required Color color,
-      String? hintText,
       TextEditingController? controller,
       Function()? onTap,
       String? Function(String?)? onValidator,
@@ -577,7 +572,7 @@ class AddProjectScreen extends StatelessWidget {
                     readOnly: true,
                     controller: controller,
                     decoration: InputDecoration(
-                        border: InputBorder.none, hintText: hintText),
+                        border: InputBorder.none, hintText: title),
                     onTap: onTap,
                     validator: onValidator,
                   ),

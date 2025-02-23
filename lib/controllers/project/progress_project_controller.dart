@@ -1,18 +1,19 @@
 import 'package:get/get.dart';
+import 'package:project_manager/controllers/task/task_controller.dart';
 
 class ProgressProjectController extends GetxController {
-  final double targetValue;
-  RxDouble currentValue = 0.0.obs;
+  final TaskController taskController = Get.find<TaskController>();
 
-  ProgressProjectController({required this.targetValue});
+  RxDouble currentValue = 0.0.obs;
 
   @override
   void onInit() {
     super.onInit();
-    animateToValue();
+    // ever(taskController.tasks, (_) => taskController.calculateProgress());
+    animateToValue(taskController.calculateProgress());
   }
 
-  void animateToValue() async {
+  void animateToValue(double targetValue) async {
     await Future.delayed(const Duration(milliseconds: 500));
     for (double i = 0.0; i < targetValue; i += 0.01) {
       await Future.delayed(const Duration(milliseconds: 10));
