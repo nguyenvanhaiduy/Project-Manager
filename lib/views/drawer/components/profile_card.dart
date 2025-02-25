@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
+import 'package:project_manager/routers/app_routers.dart';
 import 'package:project_manager/utils/color_utils.dart';
-import 'package:project_manager/views/profile/profile_screen.dart';
 
 class ProfileCard extends StatelessWidget {
   ProfileCard({super.key});
@@ -13,7 +13,7 @@ class ProfileCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        authController.isLogout.value ? null : Get.to(() => ProfileScreen());
+        authController.isLogout.value ? null : Get.toNamed(AppRouters.profile);
       },
       child: AnimatedContainer(
         duration: const Duration(microseconds: 300),
@@ -26,6 +26,7 @@ class ProfileCard extends StatelessWidget {
             BoxShadow(
               offset: const Offset(0, 0),
               blurRadius: 10,
+              // ignore: deprecated_member_use
               color: Colors.black.withOpacity(0.1),
             ),
           ],

@@ -9,15 +9,7 @@ import 'package:project_manager/views/widgets/widgets.dart';
 
 // ignore: must_be_immutable
 class VerificationCode extends StatelessWidget {
-  VerificationCode({
-    super.key,
-    required this.email,
-    required this.name,
-    required this.job,
-    required this.image,
-    required this.webImage,
-    required this.password,
-  });
+  VerificationCode({super.key});
 
   final AuthController authController = Get.find();
   final ResendController resendController = Get.put(ResendController());
@@ -27,16 +19,16 @@ class VerificationCode extends StatelessWidget {
   final List<FocusNode> _focusNodes = List.generate(5, (index) => FocusNode());
 
   String code = '';
-
-  final String name;
-  final String job;
-  final File? image;
-  final Uint8List? webImage;
-  final String email;
-  final String password;
+  final arguments = Get.arguments;
 
   @override
   Widget build(BuildContext context) {
+    final String email = arguments['email'];
+    final String name = arguments['name'];
+    final String job = arguments['job'];
+    final File? image = arguments['image'] as File?;
+    final Uint8List? webImage = arguments['webImage'] as Uint8List?;
+    final String password = arguments['password'];
     return Scaffold(
       appBar: AppBar(),
       body: SingleChildScrollView(

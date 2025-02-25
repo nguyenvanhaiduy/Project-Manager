@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/controllers/theme_controller.dart';
-import 'package:project_manager/views/auths/forgot_password.dart';
-import 'package:project_manager/views/auths/register_screen.dart';
+import 'package:project_manager/routers/app_routers.dart';
 import 'package:project_manager/views/drawer/custom_drawer.dart';
 import 'package:project_manager/views/widgets/widgets.dart';
 
@@ -108,15 +107,13 @@ class LoginScreen extends StatelessWidget {
                             children: [
                               MaterialButton(
                                 onPressed: () {
-                                  Get.to(
-                                    () => RegisterScreen(),
-                                  );
+                                  Get.toNamed(AppRouters.register);
                                 },
                                 child: Text('register'.tr),
                               ),
                               MaterialButton(
                                 onPressed: () {
-                                  Get.to(() => ForgotPasswordScreen());
+                                  Get.toNamed(AppRouters.forgotPassword);
                                 },
                                 child: Text('forgot password'.tr),
                               ),

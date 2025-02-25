@@ -11,9 +11,9 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
-import 'package:project_manager/bindings/project_binding.dart';
+import 'package:project_manager/bindings/projects/project_binding.dart';
 import 'package:project_manager/controllers/auth/resend_controller.dart';
-import 'package:project_manager/views/auths/verification_code.dart';
+import 'package:project_manager/routers/app_routers.dart';
 import 'package:project_manager/models/user.dart';
 import 'package:project_manager/views/auths/login_screen.dart';
 import 'package:project_manager/views/projects/project_screen.dart';
@@ -53,17 +53,18 @@ class AuthController extends GetxController {
 
   void checkIfUserIsLoggedIn() async {
     final user = _auth.currentUser;
-    // print('user: $user');
     if (user != null) {
       final userDoc = await _firestore.collection('users').doc(user.uid).get();
       if (userDoc.exists) {
         final userData = userDoc.data();
         currentUser.value = User.fromMap(data: userData!);
-        Get.offAll(() => ProjectScreen(), binding: ProjectBinding());
+        Get.offAllNamed(AppRouters.project);
+        // Get.offAllNamed(AppRouters.home);
+
         isLogout.value = false;
       }
     } else {
-      Get.offAll(() => LoginScreen());
+      Get.offAllNamed(AppRouters.login);
     }
   }
 
@@ -142,14 +143,14 @@ class AuthController extends GetxController {
       if (querySnapShot.docs.isEmpty) {
         if (await sendOTP(email)) {
           LoadingOverlay.hide();
-          Get.to(() => VerificationCode(
-                email: email,
-                name: name,
-                job: job,
-                image: image,
-                webImage: webImage,
-                password: password,
-              ));
+          Get.toNamed(AppRouters.verification, arguments: {
+            'email': email,
+            'name': name,
+            'job': job,
+            'image': image,
+            'webImage': webImage,
+            'password': password,
+          });
           resendController.resetTimer();
           resendController.startTimer();
         } else {

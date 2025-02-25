@@ -12,10 +12,10 @@ import 'package:project_manager/controllers/task/task_controller.dart';
 import 'package:project_manager/controllers/theme_controller.dart';
 import 'package:project_manager/models/project.dart';
 import 'package:project_manager/models/user.dart';
+import 'package:project_manager/routers/app_routers.dart';
 import 'package:project_manager/utils/color_utils.dart';
 import 'package:project_manager/views/projects/components/build_avatar.dart';
-import 'package:project_manager/views/tasks/table_of_mission_screen.dart';
-import 'package:project_manager/views/tasks/your_task_screen.dart';
+
 import 'package:project_manager/views/widgets/widgets.dart';
 
 class ProjectDetailScreen extends StatelessWidget {
@@ -165,13 +165,12 @@ class ProjectDetailScreen extends StatelessWidget {
                 customDialogConfirm(
                     'you have unsaved changes. are you sure you want to exit?',
                     () {
-                  Get.to(() => YourTaskScreen());
-                  print(projectDetailController.description);
+                  Get.toNamed(AppRouters.yourTask);
                   projectDetailController.revertChanges();
                   updateTextControllers();
                 });
               } else {
-                Get.to(() => YourTaskScreen());
+                Get.toNamed(AppRouters.yourTask);
               }
             },
             icon: const Icon(Icons.pending_actions_outlined, size: 30),
@@ -731,10 +730,10 @@ class ProjectDetailScreen extends StatelessWidget {
                                           projectDetailController.description);
                                       updateTextControllers();
 
-                                      Get.to(() => TableOfMissionScreen());
+                                      Get.toNamed(AppRouters.tableOfMission);
                                     });
                                   } else {
-                                    Get.to(() => TableOfMissionScreen());
+                                    Get.toNamed(AppRouters.tableOfMission);
                                   }
                                   // Get.find<ProgressProjectController>()
                                   //     .currentValue

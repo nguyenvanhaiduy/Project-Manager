@@ -1,13 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:project_manager/bindings/progress_project_binding.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/controllers/project/project_controller.dart';
 import 'package:project_manager/controllers/task/task_controller.dart';
+import 'package:project_manager/routers/app_routers.dart';
 import 'package:project_manager/views/drawer/custom_drawer.dart';
-import 'package:project_manager/views/projects/add_project_screen.dart';
-import 'package:project_manager/views/projects/project_detail_screen.dart';
 import 'package:project_manager/views/projects/components/card_project_custom.dart';
 
 class ProjectScreen extends StatelessWidget {
@@ -82,8 +80,7 @@ class ProjectScreen extends StatelessWidget {
                                   onTap: () async {
                                     await taskController.updateCurrentProject(
                                         projectController.projects[index]);
-                                    Get.to(() => ProjectDetailScreen(),
-                                        binding: ProgressProjectBinding());
+                                    Get.toNamed(AppRouters.projectDetail);
                                   },
                                 );
                               },
@@ -103,7 +100,7 @@ class ProjectScreen extends StatelessWidget {
                                   onTap: () async {
                                     await taskController.updateCurrentProject(
                                         projectController.projects[index]);
-                                    Get.to(() => ProjectDetailScreen());
+                                    Get.toNamed(AppRouters.projectDetail);
                                   },
                                 );
                               },
@@ -118,9 +115,7 @@ class ProjectScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Get.to(() => AddProjectScreen(
-              // isAddProject: true,
-              ));
+          Get.toNamed(AppRouters.addProject);
         },
         tooltip: 'add'.tr,
         backgroundColor: Colors.blue,

@@ -73,6 +73,7 @@ class TaskController extends GetxController {
           colorText: Colors.green, duration: const Duration(milliseconds: 900));
     } catch (e) {
       if (kDebugMode) print('Update task with error: $e');
+      Get.closeCurrentSnackbar();
       await LoadingOverlay.hide();
       Get.snackbar('Error', 'Failed to update task', colorText: Colors.green);
     }

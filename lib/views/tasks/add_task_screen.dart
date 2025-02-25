@@ -16,13 +16,7 @@ import 'package:uuid/uuid.dart';
 class AddTaskScreen extends StatelessWidget {
   AddTaskScreen({
     super.key,
-    required this.project,
-    required this.isAddTask,
-    this.task,
   });
-  final Project project;
-  final bool isAddTask; // false is edit task
-  final Task? task;
 
   final _formKey = GlobalKey<FormState>();
   final _formKey1 = GlobalKey<FormState>();
@@ -42,10 +36,15 @@ class AddTaskScreen extends StatelessWidget {
   late RxInt selectedStatus;
   late RxInt selectedPriority;
   late RxInt selectedComplexity;
+  final argument = Get.arguments;
 
   @override
   Widget build(BuildContext context) {
     final RxList<User> assignFors = <User>[].obs;
+    final Project project = Project.fromMap(data: argument['project']);
+    final bool isAddTask = argument['isAddTask']; // false is edit task
+    final Task? task =
+        argument['task'] != null ? Task.fromMap(data: argument['task']) : null;
 
     Future<void> getAssignUser() async {
       final user = await projectController.getUser(userId: task!.assignTo);
@@ -65,16 +64,16 @@ class AddTaskScreen extends StatelessWidget {
       selectedComplexity = 0.obs;
     } else {
       if (task != null) {
-        titleController = TextEditingController(text: task!.title);
-        descriptionController = TextEditingController(text: task!.description);
+        titleController = TextEditingController(text: task.title);
+        descriptionController = TextEditingController(text: task.description);
         startDateController = TextEditingController(
-            text: DateFormat('MM/dd/yyyy, HH:mm').format(task!.startDate));
+            text: DateFormat('MM/dd/yyyy, HH:mm').format(task.startDate));
         dueDateController = TextEditingController(
-            text: DateFormat('MM/dd/yyyy, HH:mm').format(task!.endDate));
+            text: DateFormat('MM/dd/yyyy, HH:mm').format(task.endDate));
         emailController = TextEditingController();
-        selectedStatus = Status.values.indexOf(task!.status).obs;
-        selectedPriority = Priority.values.indexOf(task!.priority).obs;
-        selectedComplexity = Complexity.values.indexOf(task!.complexity).obs;
+        selectedStatus = Status.values.indexOf(task.status).obs;
+        selectedPriority = Priority.values.indexOf(task.priority).obs;
+        selectedComplexity = Complexity.values.indexOf(task.complexity).obs;
         Future.wait([getAssignUser()]);
       } else {
         Get.snackbar(
@@ -460,7 +459,6 @@ class AddTaskScreen extends StatelessWidget {
                                         : Colors.white,
                                   ),
                                   onPressed: () async {
-                                    // Get.to(() => AddUserScreen());
                                     await Get.defaultDialog(
                                       title: 'add members'.tr,
                                       titleStyle: TextStyle(

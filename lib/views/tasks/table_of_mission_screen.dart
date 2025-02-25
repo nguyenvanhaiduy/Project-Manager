@@ -7,10 +7,11 @@ import 'package:project_manager/controllers/project/project_controller.dart';
 import 'package:project_manager/controllers/task/task_controller.dart';
 import 'package:project_manager/models/project.dart';
 import 'package:project_manager/models/task.dart';
-import 'package:project_manager/views/tasks/add_task_screen.dart';
+import 'package:project_manager/routers/app_routers.dart';
 import 'package:project_manager/views/tasks/components/card_task_custom.dart';
 import 'package:project_manager/views/widgets/widgets.dart';
 
+// ignore: must_be_immutable
 class TableOfMissionScreen extends StatelessWidget {
   TableOfMissionScreen({super.key});
 
@@ -70,10 +71,13 @@ class TableOfMissionScreen extends StatelessWidget {
       floatingActionButton: isOwner
           ? FloatingActionButton(
               onPressed: () {
-                Get.to(() => AddTaskScreen(
-                      project: project,
-                      isAddTask: true,
-                    ));
+                Get.toNamed(
+                  AppRouters.addTask,
+                  arguments: {
+                    'project': project.toMap(),
+                    'isAddTask': true,
+                  },
+                );
                 print(
                     '${MediaQuery.of(context).size.width ~/ 200} ${MediaQuery.of(context).size.width}');
               },
@@ -91,6 +95,7 @@ class TableOfMissionScreen extends StatelessWidget {
 
   void _showTaskDetails(BuildContext context, Task task, bool isOwner) {
     status.value = task.status.name;
+    final originStatus = task.status.name.obs;
     showGeneralDialog(
       context: context,
       barrierColor: Colors.black54,
@@ -144,38 +149,124 @@ class TableOfMissionScreen extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-                                Align(
-                                    alignment: Alignment.topRight,
-                                    child: InkWell(
-                                        borderRadius: BorderRadius.circular(
-                                            30), // Bo góc hiệu ứng
-                                        splashColor: Colors.blue.withOpacity(
-                                            0.3), // Màu hiệu ứng khi nhấn
-                                        highlightColor: Colors.blue,
-                                        onTap: () async {
-                                          bool isUpdate = true;
-                                          if (status.value ==
-                                              Status.cancelled.name) {
-                                            isUpdate = await customDialogConfirm(
-                                                'Are you sure you want to cancel this task?',
-                                                () {});
-                                          }
-                                          if (isUpdate) {
-                                            taskController.updateTask(Task(
-                                                id: task.id,
-                                                title: task.title,
-                                                startDate: task.startDate,
-                                                endDate: task.endDate,
-                                                status: Status.values
-                                                    .firstWhere((s) =>
-                                                        s.name == status.value),
-                                                priority: task.priority,
-                                                assignTo: task.assignTo,
-                                                projectOwner: task.projectOwner,
-                                                complexity: task.complexity));
-                                          }
-                                        },
-                                        child: const Icon(Icons.save)))
+                                (isOwner ||
+                                        task.assignTo ==
+                                            authController
+                                                .currentUser.value!.id)
+                                    ? Align(
+                                        alignment: Alignment.topRight,
+                                        child: InkWell(
+                                            highlightColor: Colors.blue,
+                                            onTap: () async {
+                                              if (status.value !=
+                                                  originStatus.value) {
+                                                if (task.assignTo != '') {
+                                                  bool isUpdate = true;
+                                                  if (status.value ==
+                                                      Status.cancelled.name) {
+                                                    isUpdate =
+                                                        await customDialogConfirm(
+                                                            'are you sure you want to cancel this task?',
+                                                            () {});
+                                                  }
+                                                  if (isUpdate) {
+                                                    final taskTmp = Task(
+                                                      id: task.id,
+                                                      title: task.title,
+                                                      description:
+                                                          task.description,
+                                                      startDate: task.startDate,
+                                                      endDate: task.endDate,
+                                                      status: Status.values
+                                                          .firstWhere((s) =>
+                                                              s.name ==
+                                                              status.value),
+                                                      priority: task.priority,
+                                                      assignTo: task.assignTo,
+                                                      projectOwner:
+                                                          task.projectOwner,
+                                                      complexity:
+                                                          task.complexity,
+                                                    );
+                                                    await taskController
+                                                        .updateTask(taskTmp);
+                                                    status.value ==
+                                                        taskTmp.status.name;
+                                                    originStatus.value =
+                                                        taskTmp.status.name;
+                                                  }
+                                                } else {
+                                                  Get.dialog(Center(
+                                                    child: Material(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              10),
+                                                      clipBehavior:
+                                                          Clip.hardEdge,
+                                                      child: SizedBox(
+                                                        width: 280,
+                                                        child: Column(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            const SizedBox(
+                                                                height: 10),
+                                                            Text(
+                                                              'Notification',
+                                                              style: Get
+                                                                  .textTheme
+                                                                  .bodyLarge!
+                                                                  .copyWith(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                            ),
+                                                            const Padding(
+                                                              padding: EdgeInsets
+                                                                  .symmetric(
+                                                                      horizontal:
+                                                                          12,
+                                                                      vertical:
+                                                                          5),
+                                                              child: Text(
+                                                                'Nhiệm vụ chưa có người nhận. Bạn có thể nhận nhiệm vụ này để bắt đầu!',
+                                                                style: TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w500),
+                                                              ),
+                                                            ),
+                                                            // SizedBox(height: 10),
+                                                            const Divider(),
+                                                            TextButton(
+                                                                onPressed: () {
+                                                                  Get.back();
+                                                                },
+                                                                child: Text(
+                                                                    'OK',
+                                                                    style: Get
+                                                                        .textTheme
+                                                                        .bodyLarge!
+                                                                        .copyWith(
+                                                                            fontWeight:
+                                                                                FontWeight.bold,
+                                                                            color: Colors.blue)))
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ));
+                                                }
+                                              }
+                                            },
+                                            child: Obx(() => status.value !=
+                                                    originStatus.value
+                                                ? const Icon(Icons.save)
+                                                : const Icon(
+                                                    Icons.save_outlined))),
+                                      )
+                                    : const SizedBox()
                               ],
                             ),
                             const Divider(), // Add a divider for visual separation
@@ -220,11 +311,16 @@ class TableOfMissionScreen extends StatelessWidget {
                                     ElevatedButton(
                                       onPressed: () {
                                         Get.back();
-                                        Get.to(AddTaskScreen(
-                                            project: taskController
-                                                .currentProject.value!,
-                                            isAddTask: false,
-                                            task: task));
+                                        Get.toNamed(
+                                          AppRouters.addTask,
+                                          arguments: {
+                                            'project': taskController
+                                                .currentProject.value!
+                                                .toMap(),
+                                            'isAddTask': false,
+                                            'task': task.toMap(),
+                                          },
+                                        );
                                       },
                                       child: Text('edit'.tr),
                                     ),
@@ -247,15 +343,15 @@ class TableOfMissionScreen extends StatelessWidget {
                                       },
                                       child: Text('delete'.tr),
                                     ),
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      if (task.assignTo == '') {
-                                        final shouldClaim =
-                                            await customDialogConfirm(
-                                                'are you sure you want to accept this task?',
-                                                () {});
-                                        if (shouldClaim) {
-                                          try {
+                                  if (task.assignTo == '')
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        if (task.assignTo == '') {
+                                          final shouldClaim =
+                                              await customDialogConfirm(
+                                                  'are you sure you want to accept this task?',
+                                                  () {});
+                                          if (shouldClaim) {
                                             await taskController.updateTask(
                                               Task(
                                                 id: task.id,
@@ -270,24 +366,17 @@ class TableOfMissionScreen extends StatelessWidget {
                                                 complexity: task.complexity,
                                               ),
                                             );
-                                            Get.snackbar('Success',
-                                                'You have accepted this task');
-                                          } catch (e) {
-                                            // Get.closeAllSnackbars();
-                                            Get.closeCurrentSnackbar();
-                                            Get.snackbar(
-                                                'Error', 'Assign error: $e');
+                                            Get.back();
                                           }
+                                        } else {
+                                          // Get.closeAllSnackbars();
+                                          Get.closeCurrentSnackbar();
+                                          Get.snackbar('Notice',
+                                              'You chose not to accept this task.');
                                         }
-                                      } else {
-                                        // Get.closeAllSnackbars();
-                                        Get.closeCurrentSnackbar();
-                                        Get.snackbar('Notice',
-                                            'You chose not to accept this task.');
-                                      }
-                                    },
-                                    child: Text('claim'.tr),
-                                  ),
+                                      },
+                                      child: Text('claim'.tr),
+                                    ),
                                 ],
                               ),
                             )

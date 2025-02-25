@@ -370,7 +370,6 @@ class AddProjectScreen extends StatelessWidget {
                               Get.isDarkMode ? Colors.white10 : Colors.white,
                         ),
                         onPressed: () async {
-                          // Get.to(() => AddUserScreen());
                           await Get.defaultDialog(
                             title: 'add members'.tr,
                             titleStyle: TextStyle(

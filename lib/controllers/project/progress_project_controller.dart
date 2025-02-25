@@ -9,7 +9,6 @@ class ProgressProjectController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // ever(taskController.tasks, (_) => taskController.calculateProgress());
     animateToValue(taskController.calculateProgress());
   }
 
