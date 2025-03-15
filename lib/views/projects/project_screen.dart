@@ -51,7 +51,7 @@ class ProjectScreen extends StatelessWidget {
         ),
         actions: showMenu(),
       ),
-      drawer: CustomDrawer(),
+      drawer: GetPlatform.isWeb ? CustomDrawer() : null,
       body: Obx(
         () {
           if (projectController.projects.isEmpty) {

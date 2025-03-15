@@ -135,4 +135,5 @@ const Map<String, String> viVn = {
       'Bạn có chắc muốn xoá nhiệm vụ này chứ?',
   'are you sure you want to cancel this task?':
       'Bạn có chắc muốn huỷ nhiệm vụ này chứ?',
+  'close': 'Đóng',
 };

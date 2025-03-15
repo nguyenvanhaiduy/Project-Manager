@@ -11,6 +11,7 @@ class ThemeController extends GetxController {
   void onInit() {
     super.onInit();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // đảm bảo các instance đã được khởi tạo xong thì mới chạy tới hàm này
       final storedMode = _storage.read(_key);
       if (storedMode != null) {
         themeMode.value = _getThemeModeFromString(storedMode);
@@ -21,7 +22,7 @@ class ThemeController extends GetxController {
 
   void setThemeMode(ThemeMode mode) {
     themeMode.value = mode;
-    Get.changeThemeMode(mode);
+    Get.changeThemeMode(themeMode.value);
     _storage.write(_key, mode.toString());
   }
 

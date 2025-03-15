@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/controllers/auth/drawer_controller.dart';
+import 'package:project_manager/routers/app_routers.dart';
 // import 'package:project_manager/views/widgets/tag/tag_screen.dart';
 import 'package:project_manager/views/widgets/widgets.dart';
 
@@ -13,20 +14,17 @@ class TagTile extends StatelessWidget {
 
   void _handleTagAction() {
     drawerController.changeIndex('1');
-    // Get.back();
-    // Get.to(() => TagScreen());
-    // Get.defaultDialog(onCancel: () => Get.back(), onConfirm: () => Get.back());
+    Get.toNamed(AppRouters.tag);
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
       clipBehavior: Clip.hardEdge,
       child: Material(
+        color: Get.isDarkMode ? Colors.black54 : Colors.white,
         child: authController.isLogout.value
             ? Container()
             : customListTile(

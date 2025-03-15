@@ -27,6 +27,7 @@ class RateAndFeature extends StatelessWidget {
       ),
       clipBehavior: Clip.hardEdge,
       child: Material(
+        color: Get.isDarkMode ? Colors.black54 : Colors.white,
         child: Column(
           children: [
             customListTile(

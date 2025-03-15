@@ -19,29 +19,55 @@ class CustomDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: Drawer(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 100.0),
-            child: Column(
-              children: [
-                const CustomHeader(),
-                const SizedBox(height: 10),
-                ProfileCard(),
-                const SizedBox(height: 10),
-                TagTile(),
-                const SizedBox(height: 10),
-                ThemeAndLanguageTile(),
-                const SizedBox(height: 10),
-                RateAndFeature(),
-                const SizedBox(height: 10),
-                LogoutTile(),
-              ],
+    return GetPlatform.isWeb
+        ? Material(
+            child: Drawer(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 100.0),
+                  child: Column(
+                    children: [
+                      const CustomHeader(),
+                      const SizedBox(height: 10),
+                      ProfileCard(),
+                      const SizedBox(height: 10),
+                      TagTile(),
+                      const SizedBox(height: 10),
+                      ThemeAndLanguageTile(),
+                      const SizedBox(height: 10),
+                      RateAndFeature(),
+                      const SizedBox(height: 10),
+                      LogoutTile(),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
-    );
+          )
+        : Scaffold(
+            appBar: AppBar(
+              title: const Text(
+                'Settings',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            body: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 10),
+                  ProfileCard(),
+                  const SizedBox(height: 10),
+                  TagTile(),
+                  const SizedBox(height: 10),
+                  ThemeAndLanguageTile(),
+                  const SizedBox(height: 10),
+                  RateAndFeature(),
+                  const SizedBox(height: 10),
+                  LogoutTile(),
+                ],
+              ),
+            ),
+          );
   }
 }

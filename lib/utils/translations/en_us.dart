@@ -138,4 +138,5 @@ const Map<String, String> enUs = {
       'Are you sure you want to delete this task?',
   'are you sure you want to cancel this task?':
       'Are you sure you want to cancel this task?',
+  'close': 'Close',
 };

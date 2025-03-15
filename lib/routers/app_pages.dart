@@ -7,11 +7,13 @@ import 'package:project_manager/views/auths/login_screen.dart';
 import 'package:project_manager/views/auths/register_screen.dart';
 import 'package:project_manager/views/auths/splash_screen.dart';
 import 'package:project_manager/views/auths/verification_code.dart';
-import 'package:project_manager/views/home.dart';
+import 'package:project_manager/views/pages.dart';
 import 'package:project_manager/views/profile/profile_screen.dart';
 import 'package:project_manager/views/projects/add_project_screen.dart';
 import 'package:project_manager/views/projects/project_detail_screen.dart';
 import 'package:project_manager/views/projects/project_screen.dart';
+import 'package:project_manager/views/tag/add_tag_screen.dart';
+import 'package:project_manager/views/tag/tag_screen.dart';
 import 'package:project_manager/views/tasks/add_task_screen.dart';
 import 'package:project_manager/views/tasks/table_of_mission_screen.dart';
 import 'package:project_manager/views/tasks/your_task_screen.dart';
@@ -36,7 +38,8 @@ class AppPages {
     ),
     GetPage(
       name: AppRouters.home,
-      page: () => const HomeScreen(),
+      page: () => PagesScreen(),
+      binding: ProjectBinding(),
     ),
     GetPage(
       name: AppRouters.profile,
@@ -45,7 +48,6 @@ class AppPages {
     GetPage(
       name: AppRouters.project,
       page: () => ProjectScreen(),
-      binding: ProjectBinding(),
     ),
     GetPage(
       name: AppRouters.addProject,
@@ -71,6 +73,14 @@ class AppPages {
     GetPage(
       name: AppRouters.tableOfMission,
       page: () => TableOfMissionScreen(),
+    ),
+    GetPage(
+      name: AppRouters.tag,
+      page: () => TagScreen(),
+    ),
+    GetPage(
+      name: AppRouters.addTag,
+      page: () => AddTagScreen(),
     ),
   ];
 }

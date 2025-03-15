@@ -75,7 +75,7 @@ class ProjectController extends GetxController {
       Get.snackbar('Success', 'Add project success', colorText: Colors.green);
     } catch (e) {
       await LoadingOverlay.hide();
-      if (kDebugMode) print('Error: $e');
+      if (kDebugMode) print('Failed to add project: $e');
 
       Get.snackbar('Error', 'Failed to add project', colorText: Colors.red);
     }

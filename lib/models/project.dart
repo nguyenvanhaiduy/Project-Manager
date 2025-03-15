@@ -14,38 +14,42 @@ class Project {
   final List<String> userIds; // Lưu ID của User
   // final List<String> attachments;
   final String owner; // Lưu ID của người tạo Project
+  final String idTag;
 
-  Project({
-    String? id,
-    required this.title,
-    required this.description,
-    required this.status,
-    required this.priority,
-    required this.startDate,
-    required this.endDate,
-    required this.taskIds,
-    required this.userIds,
-    // required this.attachments,
-    required this.owner,
-  }) : id = id ?? const Uuid().v4();
+  Project(
+      {String? id,
+      required this.title,
+      required this.description,
+      required this.status,
+      required this.priority,
+      required this.startDate,
+      required this.endDate,
+      required this.taskIds,
+      required this.userIds,
+      // required this.attachments,
+      required this.owner,
+      String? idTag})
+      : id = id ?? const Uuid().v4(),
+        idTag = idTag ?? '';
 
   factory Project.fromMap({required Map<String, dynamic> data}) {
     return Project(
-      id: data['id'],
-      title: data['title'],
-      description: data['description'],
-      status: Status.values.firstWhereOrNull((s) => s.name == data['status']) ??
-          Status.notStarted,
-      priority:
-          Priority.values.firstWhereOrNull((p) => p.name == data['priority']) ??
-              Priority.low,
-      startDate: (data['startDate'] as Timestamp).toDate(),
-      endDate: (data['endDate'] as Timestamp).toDate(),
-      taskIds: List<String>.from(data['tasks'] ?? []),
-      userIds: List<String>.from(data['users'] ?? []),
-      // attachments: List<String>.from(data['attachments'] ?? []),
-      owner: data['owner'],
-    );
+        id: data['id'],
+        title: data['title'],
+        description: data['description'],
+        status:
+            Status.values.firstWhereOrNull((s) => s.name == data['status']) ??
+                Status.notStarted,
+        priority: Priority.values
+                .firstWhereOrNull((p) => p.name == data['priority']) ??
+            Priority.low,
+        startDate: (data['startDate'] as Timestamp).toDate(),
+        endDate: (data['endDate'] as Timestamp).toDate(),
+        taskIds: List<String>.from(data['tasks'] ?? []),
+        userIds: List<String>.from(data['users'] ?? []),
+        // attachments: List<String>.from(data['attachments'] ?? []),
+        owner: data['owner'],
+        idTag: data['idTag']);
   }
 
   Map<String, dynamic> toMap() {
@@ -61,6 +65,7 @@ class Project {
       'users': userIds,
       // 'attachments': attachments,
       'owner': owner,
+      'idTag': idTag,
     };
   }
 

@@ -24,6 +24,7 @@ class LogoutTile extends StatelessWidget {
       ),
       clipBehavior: Clip.hardEdge,
       child: Material(
+        color: Get.isDarkMode ? Colors.black54 : Colors.white,
         child: authController.isLogout.value
             ? Container()
             : customListTile(

@@ -24,7 +24,7 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      drawer: CustomDrawer(),
+      drawer: GetPlatform.isWeb ? CustomDrawer() : null,
       body: Center(
         child: Form(
           key: _formKey,

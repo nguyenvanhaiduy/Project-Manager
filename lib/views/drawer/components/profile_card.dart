@@ -20,7 +20,7 @@ class ProfileCard extends StatelessWidget {
         curve: Curves.linear,
         margin: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          color: Get.isDarkMode ? Colors.black38 : Colors.white,
+          color: Get.isDarkMode ? Colors.black54 : Colors.white,
           borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(

@@ -29,9 +29,10 @@ class ThemeAndLanguageTile extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   customTextButton(
-                      child: const Icon(
+                      child: Icon(
                         Icons.light_mode,
                         size: 20,
+                        color: Get.isDarkMode ? Colors.white : Colors.black,
                       ),
                       title: 'light',
                       onPress: () {
@@ -43,9 +44,10 @@ class ThemeAndLanguageTile extends StatelessWidget {
                     thickness: 0,
                   ),
                   customTextButton(
-                      child: const Icon(
+                      child: Icon(
                         Icons.dark_mode,
                         size: 20,
+                        color: Get.isDarkMode ? Colors.white : Colors.black,
                       ),
                       title: 'dark',
                       onPress: () {
@@ -57,9 +59,10 @@ class ThemeAndLanguageTile extends StatelessWidget {
                     thickness: 0,
                   ),
                   customTextButton(
-                    child: const Icon(
+                    child: Icon(
                       Icons.settings,
                       size: 20,
+                      color: Get.isDarkMode ? Colors.white : Colors.black,
                     ),
                     title: 'system',
                     onPress: () {
@@ -135,6 +138,7 @@ class ThemeAndLanguageTile extends StatelessWidget {
       ),
       clipBehavior: Clip.hardEdge,
       child: Material(
+        color: Get.isDarkMode ? Colors.black54 : Colors.white,
         child: Column(
           children: [
             customListTile(

@@ -12,4 +12,6 @@ abstract class AppRouters {
   static const yourTask = '/your-task';
   static const addTask = '/add-task';
   static const tableOfMission = '/table-of-mission';
+  static const tag = '/tag';
+  static const addTag = '/add-tag';
 }

@@ -58,8 +58,8 @@ class AuthController extends GetxController {
       if (userDoc.exists) {
         final userData = userDoc.data();
         currentUser.value = User.fromMap(data: userData!);
-        Get.offAllNamed(AppRouters.project);
-        // Get.offAllNamed(AppRouters.home);
+        // Get.offAllNamed(AppRouters.project);
+        Get.offAllNamed(AppRouters.home);
 
         isLogout.value = false;
       }
