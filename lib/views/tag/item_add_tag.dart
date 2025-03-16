@@ -29,32 +29,41 @@ class ItemAddTag extends StatelessWidget {
                   tagConfigController.isValids[index].value =
                       formKey.currentState!.validate();
                 },
+                maxLength: 20,
                 validator: (value) {
                   if (value != null && value.isEmpty) {
                     return "Tag can't be empty";
                   }
 
+                  if (value!.length > 20) {
+                    return 'Tên tag không được quá 20 ký tự';
+                  }
+
                   bool isDuplicate = tagConfigController.tagEdittingController
                           .where((controller) =>
-                              controller.text.trim() == value!.trim())
+                              controller.text.trim() == value.trim())
                           .length >
                       1;
                   if (isDuplicate) return "Duplicate tag";
                   return null;
                 },
                 decoration: InputDecoration(
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 10, // Giảm chiều cao (mặc định là 16)
+                    horizontal: 12,
                   ),
-                  errorBorder: OutlineInputBorder(
+                  hintText: 'Nhập tên tag...',
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.grey, width: 1),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Colors.grey, width: 1),
+                    borderSide: const BorderSide(
+                      color: Colors.white,
+                      width: 1,
+                    ),
                   ),
                 )),
           ),

@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:project_manager/bindings/projects/progress_project_binding.dart';
 import 'package:project_manager/bindings/projects/project_binding.dart';
+import 'package:project_manager/bindings/tags/tag_binding.dart';
 import 'package:project_manager/routers/app_routers.dart';
 import 'package:project_manager/views/auths/forgot_password.dart';
 import 'package:project_manager/views/auths/login_screen.dart';
@@ -12,7 +13,7 @@ import 'package:project_manager/views/profile/profile_screen.dart';
 import 'package:project_manager/views/projects/add_project_screen.dart';
 import 'package:project_manager/views/projects/project_detail_screen.dart';
 import 'package:project_manager/views/projects/project_screen.dart';
-import 'package:project_manager/views/tag/add_tag_screen.dart';
+import 'package:project_manager/views/tag/tag_create_or_edit_screen.dart';
 import 'package:project_manager/views/tag/tag_screen.dart';
 import 'package:project_manager/views/tasks/add_task_screen.dart';
 import 'package:project_manager/views/tasks/table_of_mission_screen.dart';
@@ -77,10 +78,15 @@ class AppPages {
     GetPage(
       name: AppRouters.tag,
       page: () => TagScreen(),
+      binding: TagBinding(),
     ),
     GetPage(
       name: AppRouters.addTag,
-      page: () => AddTagScreen(),
+      page: () => TagCreateOrEditScreen(),
+    ),
+    GetPage(
+      name: AppRouters.editTag,
+      page: () => TagCreateOrEditScreen(),
     ),
   ];
 }

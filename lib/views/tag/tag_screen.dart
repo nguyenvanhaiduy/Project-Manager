@@ -2,78 +2,120 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_manager/controllers/tag/tag_controller.dart';
 import 'package:project_manager/routers/app_routers.dart';
+import 'package:project_manager/views/widgets/custom_dialog.dart';
 
 class TagScreen extends StatelessWidget {
   TagScreen({super.key});
 
   final RxList<String> tags = <String>[].obs;
-  final TagController tagController = Get.put(TagController());
+  final TagController tagController = Get.find();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Collection Tag',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-            ),
+      appBar: AppBar(
+        title: const Text(
+          'Collection Tag',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
           ),
         ),
-        body: Obx(
-          () => tagController.tags.isEmpty
-              ? Stack(
-                  children: [
-                    Center(
-                      child: Text('oh!!!. You don\'t have any tags yet'.tr),
-                    ),
-                    Align(
-                      alignment: Alignment.topLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 10),
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
+        actions: [
+          Obx(
+            () => tagController.tags.isNotEmpty
+                ? IconButton(
+                    onPressed: () {
+                      Get.toNamed(AppRouters.addTag);
+                    },
+                    icon: const Icon(Icons.add))
+                : const Spacer(),
+          )
+        ],
+      ),
+      body: Obx(
+        () => (tagController.tags.isEmpty)
+            ? Stack(
+                children: [
+                  Center(
+                    child: Text('oh!!!. You don\'t have any tags yet'.tr),
+                  ),
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 10),
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          onPressed: () {
-                            Get.toNamed(AppRouters.addTag);
+                        ),
+                        onPressed: () {
+                          Get.toNamed(AppRouters.addTag);
+                        },
+                        child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 10,
+                                horizontal:
+                                    (MediaQuery.of(context).size.width > 600)
+                                        ? Get.size.width * 0.04
+                                        : Get.size.width * 0.13),
+                            child: const Icon(
+                              Icons.add,
+                              size: 30,
+                            )),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : Padding(
+                padding: const EdgeInsets.all(12),
+                child: GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: Get.size.width ~/ 200,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: (MediaQuery.of(context).size.width > 600)
+                        ? Get.size.width / 300
+                        : Get.size.width / 150,
+                  ),
+                  itemCount: tagController.tags.length,
+                  itemBuilder: (context, index) {
+                    debugPrint("Get.size: ${Get.size}");
+                    return GestureDetector(
+                      onTap: () {
+                        Get.toNamed(AppRouters.addTag, arguments: {
+                          'isEdit': true,
+                          'index': index,
+                        });
+                      },
+                      onLongPress: () async {
+                        await customDialog(
+                          title:
+                              'Bạn có chắc muốn xoá thẻ ${tagController.tags[index].title} chứ?',
+                          onPress: () async {
+                            await tagController
+                                .deleteTag(tagController.tags[index].id);
                           },
-                          child: Padding(
-                              padding: EdgeInsets.all(Get.size.width * 0.12),
-                              child: const Icon(
-                                Icons.add,
-                                size: 50,
-                              )),
+                        );
+                      },
+                      child: Card(
+                        color: Colors.blue.shade100,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Center(
+                          child: Text(
+                            tagController.tags[index].title,
+                            style: const TextStyle(color: Colors.black),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                )
-              : Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        childAspectRatio: 3,
-                      ),
-                      itemCount: tagController.tags.length,
-                      itemBuilder: (context, index) {
-                        return GestureDetector(
-                          child: Card(
-                            color: Colors.blue.shade100,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Center(),
-                          ),
-                        );
-                      }),
+                    );
+                  },
                 ),
-        ));
+              ),
+      ),
+    );
   }
 }

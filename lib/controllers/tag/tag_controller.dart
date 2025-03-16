@@ -33,7 +33,7 @@ class TagController extends GetxController {
       LoadingOverlay.show();
       await firestore.collection('tags').doc(tag.id).set(tag.toMap());
       LoadingOverlay.hide();
-      Get.snackbar('Success', 'Add tag success', colorText: Colors.green);
+      // Get.snackbar('Success', 'Add tag success', colorText: Colors.green);
     } catch (e) {
       LoadingOverlay.hide();
       Get.closeCurrentSnackbar();
@@ -47,7 +47,6 @@ class TagController extends GetxController {
     try {
       LoadingOverlay.show();
       await firestore.collection('tags').doc(tag.id).update(tag.toMap());
-      Get.snackbar('Success', 'Add project success', colorText: Colors.green);
       LoadingOverlay.hide();
     } catch (e) {
       LoadingOverlay.hide();
@@ -62,7 +61,6 @@ class TagController extends GetxController {
     try {
       LoadingOverlay.show();
       await firestore.collection('tags').doc(id).delete();
-      Get.snackbar('Success', 'Delete tag success', colorText: Colors.green);
       LoadingOverlay.hide();
     } catch (e) {
       LoadingOverlay.hide();

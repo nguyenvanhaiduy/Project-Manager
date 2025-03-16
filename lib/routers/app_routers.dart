@@ -14,4 +14,5 @@ abstract class AppRouters {
   static const tableOfMission = '/table-of-mission';
   static const tag = '/tag';
   static const addTag = '/add-tag';
+  static const editTag = '/edit-tag';
 }
