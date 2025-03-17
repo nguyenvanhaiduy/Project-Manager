@@ -1,0 +1,2 @@
+/Users/haiduy/development/project_manager/android/app/.cxx/Debug/4d3w5z4x/x86_64/CMakeFiles/edit_cache.dir
+/Users/haiduy/development/project_manager/android/app/.cxx/Debug/4d3w5z4x/x86_64/CMakeFiles/rebuild_cache.dir
