@@ -28,7 +28,7 @@ class TagScreen extends StatelessWidget {
                       Get.toNamed(AppRouters.addTag);
                     },
                     icon: const Icon(Icons.add))
-                : const Spacer(),
+                : const SizedBox(),
           )
         ],
       ),
@@ -94,6 +94,7 @@ class TagScreen extends StatelessWidget {
                           title:
                               'Bạn có chắc muốn xoá thẻ ${tagController.tags[index].title} chứ?',
                           onPress: () async {
+                            Get.back();
                             await tagController
                                 .deleteTag(tagController.tags[index].id);
                           },

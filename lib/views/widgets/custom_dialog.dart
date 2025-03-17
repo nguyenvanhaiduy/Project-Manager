@@ -62,11 +62,12 @@ Future<bool> customDialog({
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      onPressed: () {
-                        isDelete = true;
-                        onPress();
-                        Get.back();
-                      },
+                      onPressed: onPress,
+                      // onPressed: () {
+                      //   // isDelete = true;
+                      //   // onPress();
+                      //   // Get.back();
+                      // },
                       child: Text('confirm'.tr),
                     )
                   ],

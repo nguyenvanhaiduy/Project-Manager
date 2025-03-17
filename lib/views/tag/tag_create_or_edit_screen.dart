@@ -194,17 +194,16 @@ class TagCreateOrEditScreen extends StatelessWidget {
                                                                 value.isEmpty) {
                                                               return "Name Tag Collection can't be empty";
                                                             }
-                                                            final length = tagController
+                                                            if (tagController
                                                                 .tags
-                                                                .map((tag) => tag
-                                                                    .title
-                                                                    .compareTo(
-                                                                        titleController
-                                                                            .text
-                                                                            .trim()))
-                                                                .length;
-
-                                                            if (length > 0) {
+                                                                .any((tag) =>
+                                                                    tag.title
+                                                                        .trim()
+                                                                        .toLowerCase() ==
+                                                                    titleController
+                                                                        .text
+                                                                        .trim()
+                                                                        .toLowerCase())) {
                                                               return "Duplicate name tag";
                                                             }
                                                             return null;
