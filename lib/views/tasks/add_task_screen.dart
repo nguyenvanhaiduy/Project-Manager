@@ -662,6 +662,7 @@ class AddTaskScreen extends StatelessWidget {
                                           .map((e) => e.id)
                                           .toList(),
                                       userIds: project.userIds,
+                                      attachments: project.attachments,
                                       owner: project.owner,
                                     ),
                                   );

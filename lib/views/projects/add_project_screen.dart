@@ -1,10 +1,22 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data'; // import thu vien nay de co the up file tren web
+
+// import 'package:cloudinary/cloudinary.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:path/path.dart' as path; // Import path để lấy tên file
+import 'package:path_provider/path_provider.dart'; // Import path_provider
+
 import 'package:intl/intl.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/controllers/project/add_project_controller.dart';
 import 'package:project_manager/controllers/project/project_controller.dart';
+import 'package:project_manager/models/file_metadata_flutter.dart';
 import 'package:project_manager/models/project.dart';
 import 'package:project_manager/models/user.dart';
 import 'package:project_manager/utils/color_utils.dart';
@@ -29,10 +41,58 @@ class AddProjectScreen extends StatelessWidget {
 
   final projectID = const Uuid().v4();
 
+  final String baseUrl = 'http://localhost:8080/project/api/files';
+
   final _formKey = GlobalKey<FormState>();
   final _formKey1 = GlobalKey<FormState>();
-  final RxList<String> attachments = <String>[].obs;
+  final RxList<FileMetadataFlutter> attachments = <FileMetadataFlutter>[].obs;
   var count = 0;
+
+  Future<void> _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    if (result != null && result.files.isNotEmpty) {
+      PlatformFile file = result.files.first;
+      await _uploadFile(File(file.path!));
+    } else {
+      print("No file selected");
+    }
+  }
+
+  Future<void> _uploadFile(File file) async {
+    try {
+      var request = http.MultipartRequest("POST", Uri.parse('$baseUrl/upload'));
+      request.files.add(await http.MultipartFile.fromPath(
+        'file',
+        file.path,
+        contentType: MediaType(
+            'application', 'octet-stream'), // Sử dụng MediaType từ http_parser
+      ));
+      var response = await request.send();
+      final responseBody =
+          await response.stream.bytesToString(); // Đọc response body
+      if (response.statusCode == 200) {
+        print("updaloaded");
+        final jsonResponse = jsonDecode(responseBody);
+
+        // Lấy thông tin từ JSON
+        String fileId = jsonResponse['fileId'];
+        String fileName = jsonResponse['fileName'];
+        String fileType = jsonResponse['fileType'];
+        String fileUrl = '$baseUrl/$fileId';
+
+        attachments.add(FileMetadataFlutter(
+          id: fileId, // Lưu cả ID
+          fileName: fileName,
+          fileType: fileType,
+          url: fileUrl,
+        ));
+      } else {
+        print('Upload failed with status ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error uploading file: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -481,12 +541,44 @@ class AddProjectScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 15),
+              ElevatedButton(
+                  onPressed: _pickFile, child: const Text('Chọn file')),
+              const SizedBox(height: 15),
+              // Hiển thị danh sách file đã chọn
+              Obx(
+                () => ListView.builder(
+                  itemCount: attachments.length,
+                  shrinkWrap: true,
+                  physics:
+                      const NeverScrollableScrollPhysics(), // Để ListView không scroll riêng
+                  itemBuilder: (context, index) {
+                    final file = attachments[index];
+                    return ListTile(
+                      leading: Icon(getIconForAttachment(file.fileType)),
+                      title: Text(file.fileName),
+                      trailing: IconButton(
+                        // Thêm nút download
+                        icon: Icon(Icons.download),
+                        onPressed: () {
+                          _downloadFile(
+                              file.url!, file.fileName); // Gọi hàm download
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
               const SizedBox(height: 30),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: TextButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
+                      // Tạo danh sách tên file để lưu vào project
+
+                      List<String> fileIds =
+                          attachments.map((file) => file.id).toList();
                       await projectController.addProject(
                         Project(
                           id: projectID,
@@ -501,7 +593,7 @@ class AddProjectScreen extends StatelessWidget {
                               .parse(dueDateController.text),
                           taskIds: [],
                           userIds: listUsers.map((user) => user.id).toList(),
-                          // attachments: attachments,
+                          attachments: fileIds,
                           owner: authController.currentUser.value!.id,
                         ),
                       );
@@ -622,53 +714,65 @@ class AddProjectScreen extends StatelessWidget {
     );
   }
 
-  // String getName(String name) {
-  //   return '${name[0].toUpperCase()}${name.substring(1)}';
-  // }
+  IconData getIconForAttachment(String attachment) {
+    final extension = attachment.split('.').last.toLowerCase();
+    switch (extension) {
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      case 'doc':
+      case 'docx':
+        return Icons.description;
+      case 'xls':
+      case 'xlsx':
+        return Icons.grid_on;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+        return Icons.image;
+      default:
+        return Icons.insert_drive_file;
+    }
+  }
 
-  // String getFileName(String url) {
-  //   return url.split('/').last.split("?").first;
-  // }
+  Future<void> _downloadFile(String url, String fileName) async {
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        // tải file thành công
+        final Directory? downloadDir;
 
-  // IconData getIconForAttachment(String attachment) {
-  //   final extension = attachment.split('.').last.toLowerCase();
-  //   switch (extension) {
-  //     case 'pdf':
-  //       return Icons.picture_as_pdf;
-  //     case 'doc':
-  //     case 'docx':
-  //       return Icons.description;
-  //     case 'xls':
-  //     case 'xlxs':
-  //       return Icons.grid_on;
-  //     case 'jpg':
-  //     case 'jpeg':
-  //     case 'png':
-  //     case 'gif':
-  //       return Icons.image;
-  //     default:
-  //       return Icons.insert_drive_file;
-  //   }
-  // }
+        // xác định thư mục Downloads dựa trên nền tảng
+        if (Platform.isAndroid) {
+          downloadDir =
+              await getExternalStorageDirectory(); // phải import path_provider
+        } else if (Platform.isIOS) {
+          downloadDir =
+              await getApplicationDocumentsDirectory(); // cho ios thay doi neu can
+        } else {
+          downloadDir =
+              await getDownloadsDirectory(); // cho cac nen tagn khac neu co
+        }
 
-  // Future<void> downloadFile(String url, String savePath) async {
-  //   try {
-  //     final response = await http.get(Uri.parse(url));
-  //     if (response.statusCode == 200) {
-  //       // final file = File(savePath);
-  //       // await file.writeAsBytes(response.bodyBytes);
-  //       // print('File downloaded: ${file.path}');
-  //       // Use your existing functions to get the file name and icon
-  //       final fileName = getFileName(response.body);
-  //       print(fileName);
-  //       final fileIcon = getIconForAttachment(fileName);
-  //       // Update the UI with the file name and icon
-  //       attachments.add(fileName);
-  //     } else {
-  //       print('Failed to download file');
-  //     }
-  //   } catch (e) {
-  //     print('Error: $e');
-  //   }
-  // }
+        if (downloadDir != null) {
+          final String savePath = path.join(downloadDir.path, fileName);
+          final File file = File(savePath);
+          await file.writeAsBytes(response.bodyBytes);
+          Get.snackbar('Success', 'Đã tải file $fileName về thư mục Downloads',
+              snackPosition: SnackPosition.BOTTOM);
+          print("File downloaded to $savePath");
+        }
+      } else {
+        // Lỗi khi tải file
+        print('Failed to download file. Status code: ${response.statusCode}');
+        Get.snackbar(
+            'Lỗi', 'Không thể tải file. Mã lỗi: ${response.statusCode}',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white);
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
 }

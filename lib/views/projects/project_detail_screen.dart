@@ -811,6 +811,7 @@ class ProjectDetailScreen extends StatelessWidget {
                                       .parse(dueDateController.text),
                                   taskIds: project.taskIds,
                                   userIds: projectDetailController.userIds,
+                                  attachments: [],
                                   owner: project.owner,
                                 );
                                 await projectController

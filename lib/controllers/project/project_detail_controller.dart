@@ -53,6 +53,7 @@ class ProjectDetailController extends GetxController {
       endDate: DateFormat('MM/dd/yyyy, HH:mm').parse(dueDate.value),
       taskIds: initialProject!.taskIds,
       userIds: userIds,
+      attachments: initialProject!.attachments,
       owner: initialProject!.owner,
     );
 

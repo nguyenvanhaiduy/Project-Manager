@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +8,7 @@ import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/models/project.dart';
 import 'package:project_manager/models/user.dart';
 import 'package:project_manager/views/widgets/loading_overlay.dart';
+import 'package:http/http.dart' as http;
 
 class ProjectController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -66,10 +69,14 @@ class ProjectController extends GetxController {
     Get.closeAllSnackbars();
     try {
       LoadingOverlay.show();
+
       await _firestore
           .collection('projects')
           .doc(project.id)
           .set(project.toMap());
+      if (project.attachments.isNotEmpty) {
+        await markFileAsAdded(project.attachments);
+      }
       await LoadingOverlay.hide();
       Get.back();
       Get.snackbar('Success', 'Add project success', colorText: Colors.green);
@@ -121,6 +128,25 @@ class ProjectController extends GetxController {
       if (kDebugMode) print('Delete project with error: $e');
       Get.snackbar('Error', 'Failed to delete project',
           colorText: Colors.red, duration: const Duration(seconds: 2));
+    }
+  }
+
+  Future<void> markFileAsAdded(List<String> fileIds) async {
+    const String url = "http://localhost:8080/project/api/files/markAsAdded";
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(fileIds),
+      );
+      if (response.statusCode == 200) {
+        print('Files marked as added successfully');
+      } else {
+        print(
+            'Failed to mark files as added. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error marking files as added: $e');
     }
   }
 

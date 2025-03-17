@@ -12,7 +12,7 @@ class Project {
   final DateTime endDate;
   final List<String> taskIds; // Lưu ID của Task
   final List<String> userIds; // Lưu ID của User
-  // final List<String> attachments;
+  final List<String> attachments;
   final String owner; // Lưu ID của người tạo Project
   final String idTag;
 
@@ -26,7 +26,7 @@ class Project {
       required this.endDate,
       required this.taskIds,
       required this.userIds,
-      // required this.attachments,
+      required this.attachments,
       required this.owner,
       String? idTag})
       : id = id ?? const Uuid().v4(),
@@ -47,7 +47,7 @@ class Project {
         endDate: (data['endDate'] as Timestamp).toDate(),
         taskIds: List<String>.from(data['tasks'] ?? []),
         userIds: List<String>.from(data['users'] ?? []),
-        // attachments: List<String>.from(data['attachments'] ?? []),
+        attachments: List<String>.from(data['attachments'] ?? []),
         owner: data['owner'],
         idTag: data['idTag']);
   }
@@ -63,7 +63,7 @@ class Project {
       'endDate': Timestamp.fromDate(endDate),
       'tasks': taskIds,
       'users': userIds,
-      // 'attachments': attachments,
+      'attachments': attachments,
       'owner': owner,
       'idTag': idTag,
     };
