@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data'; // import thu vien nay de co the up file tren web
+import 'dart:io' as io;
+// import 'dart:typed_data'; // import thu vien nay de co the up file tren web
 
 // import 'package:cloudinary/cloudinary.dart';
 import 'package:file_picker/file_picker.dart';
@@ -11,6 +11,8 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path; // Import path để lấy tên file
 import 'package:path_provider/path_provider.dart'; // Import path_provider
+
+import 'package:universal_html/html.dart' as web; // Chỉ hoạt động trên Web
 
 import 'package:intl/intl.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
@@ -41,7 +43,8 @@ class AddProjectScreen extends StatelessWidget {
 
   final projectID = const Uuid().v4();
 
-  final String baseUrl = 'http://localhost:8080/project/api/files';
+  // final String baseUrl = 'http://localhost:8080/project/api/files';
+  final baseUrl = Uri.parse("http://192.168.1.23:8080/project/api/files");
 
   final _formKey = GlobalKey<FormState>();
   final _formKey1 = GlobalKey<FormState>();
@@ -52,36 +55,46 @@ class AddProjectScreen extends StatelessWidget {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (result != null && result.files.isNotEmpty) {
       PlatformFile file = result.files.first;
-      await _uploadFile(File(file.path!));
+      await _uploadFile(file);
     } else {
       print("No file selected");
     }
   }
 
-  Future<void> _uploadFile(File file) async {
+  Future<void> _uploadFile(PlatformFile file) async {
+    // Nhận PlatformFile
     try {
       var request = http.MultipartRequest("POST", Uri.parse('$baseUrl/upload'));
-      request.files.add(await http.MultipartFile.fromPath(
-        'file',
-        file.path,
-        contentType: MediaType(
-            'application', 'octet-stream'), // Sử dụng MediaType từ http_parser
-      ));
+
+      // Kiểm tra nền tảng
+      if (kIsWeb) {
+        // Trên web, sử dụng bytes
+        request.files.add(http.MultipartFile.fromBytes(
+          'file',
+          file.bytes!.toList(), // Chuyển thành List<int>
+          filename: file.name,
+          contentType: MediaType('application', 'octet-stream'),
+        ));
+      } else {
+        // Trên các nền tảng khác, sử dụng path
+        request.files.add(await http.MultipartFile.fromPath(
+          'file',
+          file.path!,
+          contentType: MediaType('application', 'octet-stream'),
+        ));
+      }
+
       var response = await request.send();
-      final responseBody =
-          await response.stream.bytesToString(); // Đọc response body
+      final responseBody = await response.stream.bytesToString();
       if (response.statusCode == 200) {
         print("updaloaded");
         final jsonResponse = jsonDecode(responseBody);
-
-        // Lấy thông tin từ JSON
         String fileId = jsonResponse['fileId'];
         String fileName = jsonResponse['fileName'];
         String fileType = jsonResponse['fileType'];
         String fileUrl = '$baseUrl/$fileId';
-
         attachments.add(FileMetadataFlutter(
-          id: fileId, // Lưu cả ID
+          id: fileId,
           fileName: fileName,
           fileType: fileType,
           url: fileUrl,
@@ -739,37 +752,38 @@ class AddProjectScreen extends StatelessWidget {
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        // tải file thành công
-        final Directory? downloadDir;
-
-        // xác định thư mục Downloads dựa trên nền tảng
-        if (Platform.isAndroid) {
-          downloadDir =
-              await getExternalStorageDirectory(); // phải import path_provider
-        } else if (Platform.isIOS) {
-          downloadDir =
-              await getApplicationDocumentsDirectory(); // cho ios thay doi neu can
+        if (kIsWeb) {
+          // Cách tải file trên Web
+          final blob = web.Blob([response.bodyBytes]);
+          // ignore: unused_local_variable
+          final anchor = web.AnchorElement(
+              href: web.Url.createObjectUrlFromBlob(blob).toString())
+            ..setAttribute("download", fileName)
+            ..click();
         } else {
-          downloadDir =
-              await getDownloadsDirectory(); // cho cac nen tagn khac neu co
-        }
+          // Cách tải file trên Android/iOS/Desktop
+          final io.Directory? downloadDir;
 
-        if (downloadDir != null) {
-          final String savePath = path.join(downloadDir.path, fileName);
-          final File file = File(savePath);
-          await file.writeAsBytes(response.bodyBytes);
-          Get.snackbar('Success', 'Đã tải file $fileName về thư mục Downloads',
-              snackPosition: SnackPosition.BOTTOM);
-          print("File downloaded to $savePath");
+          if (io.Platform.isAndroid) {
+            downloadDir = await getExternalStorageDirectory();
+          } else if (io.Platform.isIOS) {
+            downloadDir = await getApplicationDocumentsDirectory();
+          } else {
+            downloadDir = await getDownloadsDirectory();
+          }
+
+          if (downloadDir != null) {
+            final String savePath = path.join(downloadDir.path, fileName);
+            final io.File file = io.File(savePath);
+            await file.writeAsBytes(response.bodyBytes);
+            Get.snackbar('Thành công', 'Đang tải file $fileName...',
+                snackPosition: SnackPosition.BOTTOM);
+
+            print("File downloaded to $savePath");
+          }
         }
       } else {
-        // Lỗi khi tải file
         print('Failed to download file. Status code: ${response.statusCode}');
-        Get.snackbar(
-            'Lỗi', 'Không thể tải file. Mã lỗi: ${response.statusCode}',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white);
       }
     } catch (e) {
       print('Error: $e');
