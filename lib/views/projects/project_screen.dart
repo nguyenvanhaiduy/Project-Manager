@@ -80,6 +80,9 @@ class ProjectScreen extends StatelessWidget {
                                   onTap: () async {
                                     await taskController.updateCurrentProject(
                                         projectController.projects[index]);
+                                    taskController.tasks
+                                        .bindStream(taskController.fetchData());
+
                                     Get.toNamed(AppRouters.projectDetail);
                                   },
                                 );
@@ -100,6 +103,8 @@ class ProjectScreen extends StatelessWidget {
                                   onTap: () async {
                                     await taskController.updateCurrentProject(
                                         projectController.projects[index]);
+                                    taskController.tasks
+                                        .bindStream(taskController.fetchData());
                                     Get.toNamed(AppRouters.projectDetail);
                                   },
                                 );

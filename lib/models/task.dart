@@ -15,6 +15,7 @@ class Task {
   final String projectOwner;
   final Complexity complexity;
   final String tag;
+  final List<String> attachments;
 
   Task(
       {String? id,
@@ -27,6 +28,7 @@ class Task {
       required this.assignTo,
       required this.projectOwner,
       required this.complexity,
+      required this.attachments,
       String? tag})
       : id = id ?? const Uuid().v4(),
         description = description ?? '',
@@ -34,23 +36,24 @@ class Task {
 
   factory Task.fromMap({required Map<String, dynamic> data}) {
     return Task(
-        id: data['id'],
-        title: data['title'],
-        description: data['description'],
-        startDate: (data['startDate'] as Timestamp).toDate(),
-        endDate: (data['endDate'] as Timestamp).toDate(),
-        status:
-            Status.values.firstWhereOrNull((s) => s.name == data['status']) ??
-                Status.notStarted,
-        priority: Priority.values
-                .firstWhereOrNull((p) => p.name == data['priority']) ??
-            Priority.low,
-        assignTo: data['assignTo'],
-        projectOwner: data['projectOwner'],
-        complexity: Complexity.values
-                .firstWhereOrNull((c) => c.name == data['complexity']) ??
-            Complexity.easy,
-        tag: data['tag']);
+      id: data['id'],
+      title: data['title'],
+      description: data['description'],
+      startDate: (data['startDate'] as Timestamp).toDate(),
+      endDate: (data['endDate'] as Timestamp).toDate(),
+      status: Status.values.firstWhereOrNull((s) => s.name == data['status']) ??
+          Status.notStarted,
+      priority:
+          Priority.values.firstWhereOrNull((p) => p.name == data['priority']) ??
+              Priority.low,
+      assignTo: data['assignTo'],
+      projectOwner: data['projectOwner'],
+      complexity: Complexity.values
+              .firstWhereOrNull((c) => c.name == data['complexity']) ??
+          Complexity.easy,
+      attachments: List.from(data['attachments'] ?? []),
+      tag: data['tag'],
+    );
   }
 
   Map<String, dynamic> toMap() {
@@ -65,6 +68,7 @@ class Task {
       'assignTo': assignTo,
       'projectOwner': projectOwner,
       'complexity': complexity.name,
+      'attachments': attachments,
       'tag': tag,
     };
   }

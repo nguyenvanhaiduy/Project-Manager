@@ -1,27 +1,17 @@
-import 'dart:convert';
-import 'dart:io' as io;
-// import 'dart:typed_data'; // import thu vien nay de co the up file tren web
-
-// import 'package:cloudinary/cloudinary.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
-import 'package:path/path.dart' as path; // Import path để lấy tên file
-import 'package:path_provider/path_provider.dart'; // Import path_provider
-
-import 'package:universal_html/html.dart' as web; // Chỉ hoạt động trên Web
+import 'package:project_manager/controllers/project/attachments_controller.dart';
+import 'package:project_manager/logic/project_logic.dart';
 
 import 'package:intl/intl.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/controllers/project/add_project_controller.dart';
 import 'package:project_manager/controllers/project/project_controller.dart';
-import 'package:project_manager/models/file_metadata_flutter.dart';
 import 'package:project_manager/models/project.dart';
 import 'package:project_manager/models/user.dart';
 import 'package:project_manager/utils/color_utils.dart';
+import 'package:project_manager/views/projects/components/widgets.dart';
 import 'package:uuid/uuid.dart';
 
 // ignore: must_be_immutable
@@ -43,69 +33,13 @@ class AddProjectScreen extends StatelessWidget {
 
   final projectID = const Uuid().v4();
 
-  // final String baseUrl = 'http://localhost:8080/project/api/files';
-  final baseUrl = Uri.parse("http://192.168.1.23:8080/project/api/files");
-
   final _formKey = GlobalKey<FormState>();
   final _formKey1 = GlobalKey<FormState>();
-  final RxList<FileMetadataFlutter> attachments = <FileMetadataFlutter>[].obs;
+  final AttachmentsController attachmentsController =
+      Get.put(AttachmentsController());
   var count = 0;
 
-  Future<void> _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result != null && result.files.isNotEmpty) {
-      PlatformFile file = result.files.first;
-      await _uploadFile(file);
-    } else {
-      print("No file selected");
-    }
-  }
-
-  Future<void> _uploadFile(PlatformFile file) async {
-    // Nhận PlatformFile
-    try {
-      var request = http.MultipartRequest("POST", Uri.parse('$baseUrl/upload'));
-
-      // Kiểm tra nền tảng
-      if (kIsWeb) {
-        // Trên web, sử dụng bytes
-        request.files.add(http.MultipartFile.fromBytes(
-          'file',
-          file.bytes!.toList(), // Chuyển thành List<int>
-          filename: file.name,
-          contentType: MediaType('application', 'octet-stream'),
-        ));
-      } else {
-        // Trên các nền tảng khác, sử dụng path
-        request.files.add(await http.MultipartFile.fromPath(
-          'file',
-          file.path!,
-          contentType: MediaType('application', 'octet-stream'),
-        ));
-      }
-
-      var response = await request.send();
-      final responseBody = await response.stream.bytesToString();
-      if (response.statusCode == 200) {
-        print("updaloaded");
-        final jsonResponse = jsonDecode(responseBody);
-        String fileId = jsonResponse['fileId'];
-        String fileName = jsonResponse['fileName'];
-        String fileType = jsonResponse['fileType'];
-        String fileUrl = '$baseUrl/$fileId';
-        attachments.add(FileMetadataFlutter(
-          id: fileId,
-          fileName: fileName,
-          fileType: fileType,
-          url: fileUrl,
-        ));
-      } else {
-        print('Upload failed with status ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error uploading file: $e');
-    }
-  }
+  final projectLogic = ProjectLogic();
 
   @override
   Widget build(BuildContext context) {
@@ -171,7 +105,7 @@ class AddProjectScreen extends StatelessWidget {
                   ? Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        _customWidget(
+                        customLable(
                           icon: Icons.edit_calendar_outlined,
                           title: 'start date'.tr,
                           color: Colors.yellow[700]!,
@@ -213,7 +147,7 @@ class AddProjectScreen extends StatelessWidget {
                             return null;
                           },
                         ),
-                        _customWidget(
+                        customLable(
                           icon: Icons.edit_calendar_outlined,
                           title: 'Due Date',
                           color: Colors.yellow[700]!,
@@ -263,7 +197,7 @@ class AddProjectScreen extends StatelessWidget {
                   : Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _customWidget(
+                        customLable(
                           icon: Icons.edit_calendar_outlined,
                           title: 'start date'.tr,
                           color: Colors.yellow[700]!,
@@ -306,7 +240,7 @@ class AddProjectScreen extends StatelessWidget {
                           },
                         ),
                         const SizedBox(height: 10),
-                        _customWidget(
+                        customLable(
                           icon: Icons.edit_calendar_outlined,
                           title: 'due date'.tr,
                           color: Colors.yellow[700]!,
@@ -526,7 +460,7 @@ class AddProjectScreen extends StatelessWidget {
               const SizedBox(height: 15),
               const Divider(thickness: 0, height: 0),
               const SizedBox(height: 15),
-              _customWidget(
+              customLable(
                 icon: Icons.flag_outlined,
                 title: 'priority'.tr,
                 color: Colors.green[200]!,
@@ -555,31 +489,66 @@ class AddProjectScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 15),
-              ElevatedButton(
-                  onPressed: _pickFile, child: const Text('Chọn file')),
+              const Divider(thickness: 0, height: 0),
+              const SizedBox(height: 15),
+              Row(
+                children: [
+                  Expanded(
+                    child: customLable(
+                        icon: Icons.attach_file,
+                        title: 'Attachment',
+                        color: Colors.red),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      projectLogic.pickFile();
+                    },
+                    icon: const Icon(Icons.add),
+                  )
+                ],
+              ),
+
               const SizedBox(height: 15),
               // Hiển thị danh sách file đã chọn
               Obx(
-                () => ListView.builder(
-                  itemCount: attachments.length,
-                  shrinkWrap: true,
-                  physics:
-                      const NeverScrollableScrollPhysics(), // Để ListView không scroll riêng
-                  itemBuilder: (context, index) {
-                    final file = attachments[index];
-                    return ListTile(
-                      leading: Icon(getIconForAttachment(file.fileType)),
-                      title: Text(file.fileName),
-                      trailing: IconButton(
-                        // Thêm nút download
-                        icon: Icon(Icons.download),
-                        onPressed: () {
-                          _downloadFile(
-                              file.url!, file.fileName); // Gọi hàm download
+                () => Container(
+                  constraints: const BoxConstraints(maxHeight: 300),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(left: 20),
+                    itemCount: attachmentsController.attachments.length,
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      final file = attachmentsController.attachments[index];
+                      return Dismissible(
+                        key: UniqueKey(),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          alignment: Alignment.centerRight,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                          ),
+                          child: const Icon(Icons.delete),
+                        ),
+                        onDismissed: (direction) {
+                          attachmentsController.removeAttachment(index);
                         },
-                      ),
-                    );
-                  },
+                        child: ListTile(
+                          leading: Icon(getIconForAttachment(file.fileType)),
+                          title: Text(file.fileName),
+                          trailing: IconButton(
+                            // Thêm nút download
+                            icon: const Icon(Icons.download),
+                            onPressed: () {
+                              projectLogic.downloadFile(
+                                file.url,
+                                file.fileName,
+                              ); // Gọi hàm download
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
               const SizedBox(height: 30),
@@ -590,8 +559,9 @@ class AddProjectScreen extends StatelessWidget {
                     if (_formKey.currentState!.validate()) {
                       // Tạo danh sách tên file để lưu vào project
 
-                      List<String> fileIds =
-                          attachments.map((file) => file.id).toList();
+                      List<String> fileIds = attachmentsController.attachments
+                          .map((file) => file.id)
+                          .toList();
                       await projectController.addProject(
                         Project(
                           id: projectID,
@@ -616,8 +586,9 @@ class AddProjectScreen extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    backgroundColor:
-                        Get.isDarkMode ? Colors.black38 : Colors.white,
+                    backgroundColor: Get.isDarkMode
+                        ? const Color.fromARGB(255, 55, 53, 61)
+                        : Colors.white,
                     foregroundColor:
                         Get.isDarkMode ? Colors.white : Colors.black,
                   ),
@@ -639,58 +610,6 @@ class AddProjectScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _customWidget(
-      {required IconData icon,
-      required String title,
-      required Color color,
-      TextEditingController? controller,
-      Function()? onTap,
-      String? Function(String?)? onValidator,
-      bool isTextField = true}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 20,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              icon,
-            ),
-          ),
-          const SizedBox(width: 10),
-          isTextField
-              ? SizedBox(
-                  width: 220,
-                  child: TextFormField(
-                    readOnly: true,
-                    controller: controller,
-                    decoration: InputDecoration(
-                        border: InputBorder.none, hintText: title),
-                    onTap: onTap,
-                    validator: onValidator,
-                  ),
-                )
-              : GestureDetector(
-                  onTap: onTap,
-                  child: Text(
-                    title,
-                    style: Get.textTheme.bodyLarge!.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-        ],
       ),
     );
   }
@@ -727,66 +646,47 @@ class AddProjectScreen extends StatelessWidget {
     );
   }
 
-  IconData getIconForAttachment(String attachment) {
-    final extension = attachment.split('.').last.toLowerCase();
-    switch (extension) {
-      case 'pdf':
-        return Icons.picture_as_pdf;
-      case 'doc':
-      case 'docx':
-        return Icons.description;
-      case 'xls':
-      case 'xlsx':
-        return Icons.grid_on;
-      case 'jpg':
-      case 'jpeg':
-      case 'png':
-      case 'gif':
-        return Icons.image;
-      default:
-        return Icons.insert_drive_file;
-    }
-  }
+  // Future<void> _downloadFile(String url, String fileName) async {
+  //   try {
+  //     final response = await http.get(Uri.parse(url));
+  //     if (response.statusCode == 200) {
+  //       if (kIsWeb) {
+  //         // Cách tải file trên Web
+  //         final blob = web.Blob([response.bodyBytes]);
+  //         // ignore: unused_local_variable
+  //         final anchor = web.AnchorElement(
+  //             href: web.Url.createObjectUrlFromBlob(blob).toString())
+  //           ..setAttribute("download", fileName)
+  //           ..click();
+  //         Get.snackbar('Thành công', 'Đang tải file $fileName...',
+  //             snackPosition: SnackPosition.BOTTOM);
+  //       } else {
+  //         // Cách tải file trên Android/iOS/Desktop
+  //         final io.Directory? downloadDir;
 
-  Future<void> _downloadFile(String url, String fileName) async {
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        if (kIsWeb) {
-          // Cách tải file trên Web
-          final blob = web.Blob([response.bodyBytes]);
-          // ignore: unused_local_variable
-          final anchor = web.AnchorElement(
-              href: web.Url.createObjectUrlFromBlob(blob).toString())
-            ..setAttribute("download", fileName)
-            ..click();
-        } else {
-          // Cách tải file trên Android/iOS/Desktop
-          final io.Directory? downloadDir;
+  //         if (io.Platform.isAndroid) {
+  //           downloadDir = await getExternalStorageDirectory();
+  //         } else if (io.Platform.isIOS) {
+  //           downloadDir = await getApplicationDocumentsDirectory();
+  //         } else {
+  //           downloadDir = await getDownloadsDirectory();
+  //         }
 
-          if (io.Platform.isAndroid) {
-            downloadDir = await getExternalStorageDirectory();
-          } else if (io.Platform.isIOS) {
-            downloadDir = await getApplicationDocumentsDirectory();
-          } else {
-            downloadDir = await getDownloadsDirectory();
-          }
+  //         if (downloadDir != null) {
+  //           final String savePath = path.join(downloadDir.path, fileName);
+  //           final io.File file = io.File(savePath);
+  //           await file.writeAsBytes(response.bodyBytes);
+  //           Get.snackbar('Thành công', 'Đang tải file $fileName...',
+  //               snackPosition: SnackPosition.BOTTOM);
 
-          if (downloadDir != null) {
-            final String savePath = path.join(downloadDir.path, fileName);
-            final io.File file = io.File(savePath);
-            await file.writeAsBytes(response.bodyBytes);
-            Get.snackbar('Thành công', 'Đang tải file $fileName...',
-                snackPosition: SnackPosition.BOTTOM);
-
-            print("File downloaded to $savePath");
-          }
-        }
-      } else {
-        print('Failed to download file. Status code: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error: $e');
-    }
-  }
+  //           print("File downloaded to $savePath");
+  //         }
+  //       }
+  //     } else {
+  //       print('Failed to download file. Status code: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print('Error: $e');
+  //   }
+  // }
 }

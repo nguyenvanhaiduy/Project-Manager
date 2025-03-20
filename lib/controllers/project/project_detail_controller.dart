@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:project_manager/controllers/project/attachments_controller.dart';
 import 'package:project_manager/controllers/task/task_controller.dart';
 import 'package:project_manager/models/project.dart';
 
@@ -13,6 +14,8 @@ class ProjectDetailController extends GetxController {
   late RxString dueDate = ''.obs;
   late RxInt selectStatusIndex;
   late RxInt selectPriorityIndex;
+  late RxList<String> attachments = <String>[].obs;
+  final AttachmentsController attachmentsController = Get.find();
 
   Project? initialProject;
 
@@ -28,6 +31,9 @@ class ProjectDetailController extends GetxController {
     dueDate.value = DateFormat('MM/dd/yyyy, HH:mm').format(project.endDate);
     selectStatusIndex = project.status.index.obs;
     selectPriorityIndex = project.priority.index.obs;
+    attachments.value = List.from(project.attachments);
+    attachmentsController.updateList(project.attachments);
+
     // Sử dụng everAll để theo dõi thay đổi của tất cả các trường
     everAll([
       title,
@@ -37,6 +43,7 @@ class ProjectDetailController extends GetxController {
       selectStatusIndex,
       selectPriorityIndex,
       userIds,
+      attachments,
     ], (_) {
       _checkChanges();
     });
@@ -53,7 +60,7 @@ class ProjectDetailController extends GetxController {
       endDate: DateFormat('MM/dd/yyyy, HH:mm').parse(dueDate.value),
       taskIds: initialProject!.taskIds,
       userIds: userIds,
-      attachments: initialProject!.attachments,
+      attachments: attachments,
       owner: initialProject!.owner,
     );
 
@@ -70,6 +77,9 @@ class ProjectDetailController extends GetxController {
     selectStatusIndex.value = initialProject!.status.index;
     selectPriorityIndex.value = initialProject!.priority.index;
     userIds.value = List.from(initialProject!.userIds);
+    print(userIds.length);
+    attachments.value = List.from(initialProject!.attachments);
+    attachmentsController.updateList(initialProject!.attachments);
     hasChanges.value = false;
   }
 

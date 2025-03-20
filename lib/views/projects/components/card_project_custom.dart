@@ -93,7 +93,10 @@ class CardProjectCustom extends StatelessWidget {
                                 Get.closeAllSnackbars();
                                 Get.back();
                                 projectController.deleteProject(
-                                    project.id, project.owner);
+                                  project.id,
+                                  project.owner,
+                                  project.attachments,
+                                );
                               },
                               child: Text('delete'.tr),
                             )

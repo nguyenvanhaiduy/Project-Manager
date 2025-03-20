@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
+import 'package:project_manager/controllers/project/attachments_controller.dart';
 import 'package:project_manager/controllers/project/progress_project_controller.dart';
 import 'package:project_manager/controllers/project/project_controller.dart';
 import 'package:project_manager/controllers/task/task_controller.dart';
+import 'package:project_manager/logic/project_logic.dart';
 import 'package:project_manager/models/project.dart';
 import 'package:project_manager/models/task.dart';
 import 'package:project_manager/routers/app_routers.dart';
+import 'package:project_manager/views/projects/components/widgets.dart';
 import 'package:project_manager/views/tasks/components/card_task_custom.dart';
+import 'package:project_manager/views/widgets/file_title.dart';
 import 'package:project_manager/views/widgets/widgets.dart';
 
 // ignore: must_be_immutable
@@ -18,7 +22,9 @@ class TableOfMissionScreen extends StatelessWidget {
   final AuthController authController = Get.find();
   final TaskController taskController = Get.find();
   final ProjectController projectController = Get.find();
-  RxString status = ''.obs;
+  final AttachmentsController attachmentsController = Get.find();
+  final ProjectLogic projectLogic = ProjectLogic();
+  final RxString status = ''.obs;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +40,7 @@ class TableOfMissionScreen extends StatelessWidget {
         onPopInvokedWithResult: (didPop, result) {
           Get.find<ProgressProjectController>()
               .animateToValue(taskController.calculateProgress());
+          attachmentsController.updateList(project.attachments);
         },
         child: Obx(
           () => taskController.tasks.isEmpty
@@ -71,6 +78,7 @@ class TableOfMissionScreen extends StatelessWidget {
       floatingActionButton: isOwner
           ? FloatingActionButton(
               onPressed: () {
+                attachmentsController.updateList([]);
                 Get.toNamed(
                   AppRouters.addTask,
                   arguments: {
@@ -93,9 +101,10 @@ class TableOfMissionScreen extends StatelessWidget {
     );
   }
 
-  void _showTaskDetails(BuildContext context, Task task, bool isOwner) {
+  void _showTaskDetails(BuildContext context, Task task, bool isOwner) async {
     status.value = task.status.name;
     final originStatus = task.status.name.obs;
+    await attachmentsController.updateList(task.attachments);
     showGeneralDialog(
       context: context,
       barrierColor: Colors.black54,
@@ -187,6 +196,12 @@ class TableOfMissionScreen extends StatelessWidget {
                                                           task.projectOwner,
                                                       complexity:
                                                           task.complexity,
+                                                      attachments:
+                                                          attachmentsController
+                                                              .attachments
+                                                              .map((file) =>
+                                                                  file.id)
+                                                              .toList(),
                                                     );
                                                     await taskController
                                                         .updateTask(taskTmp);
@@ -302,6 +317,64 @@ class TableOfMissionScreen extends StatelessWidget {
                             _buildDetailRow(
                                 '${'complex'.tr}:', task.complexity.name.tr),
                             Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 4.0),
+                              child: Text(
+                                'Attachments:'.tr,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            Obx(
+                              () => Container(
+                                color: Colors.blue,
+                                height: 100,
+                                constraints: const BoxConstraints(
+                                    // maxHeight: 300,
+                                    maxWidth: double.infinity),
+                                child: ListView.builder(
+                                    // padding: const EdgeInsets.only(left: 20),
+                                    shrinkWrap: true,
+                                    itemCount: attachmentsController
+                                        .attachments.length,
+                                    cacheExtent: 0,
+                                    itemBuilder: (context, index) {
+                                      final file = attachmentsController
+                                          .attachments[index];
+                                      return Dismissible(
+                                        key: UniqueKey(),
+                                        background: Container(
+                                          alignment: Alignment.centerRight,
+                                          color: Colors.red,
+                                          child: const Icon(Icons.delete),
+                                        ),
+                                        direction: DismissDirection.endToStart,
+                                        onDismissed: (diretion) {
+                                          attachmentsController
+                                              .removeAttachment(index);
+                                        },
+                                        child: FileTitle(
+                                            icon: getIconForAttachment(
+                                                file.fileName),
+                                            fileName: file.fileName,
+                                            color: Colors.red,
+                                            download: () {}),
+                                      );
+                                    }),
+                              ),
+                            ),
+                            (isOwner ||
+                                    task.assignTo ==
+                                        authController.currentUser.value!.id)
+                                ? IconButton(
+                                    tooltip: 'Add file',
+                                    onPressed: () {
+                                      projectLogic.pickFile();
+                                    },
+                                    icon: const Icon(Icons.add),
+                                  )
+                                : const SizedBox(),
+                            Padding(
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               child: Row(
                                 mainAxisAlignment:
@@ -311,6 +384,8 @@ class TableOfMissionScreen extends StatelessWidget {
                                     ElevatedButton(
                                       onPressed: () {
                                         Get.back();
+                                        attachmentsController
+                                            .updateList(task.attachments);
                                         Get.toNamed(
                                           AppRouters.addTask,
                                           arguments: {
@@ -336,8 +411,8 @@ class TableOfMissionScreen extends StatelessWidget {
                                         );
                                         if (shouldDelete) {
                                           Get.closeCurrentSnackbar();
-                                          await taskController
-                                              .deleteTask(task.id);
+                                          await taskController.deleteTask(
+                                              task.id, task.attachments);
                                           Get.back();
                                         }
                                       },
@@ -364,6 +439,11 @@ class TableOfMissionScreen extends StatelessWidget {
                                                     .currentUser.value!.id,
                                                 projectOwner: task.projectOwner,
                                                 complexity: task.complexity,
+                                                attachments:
+                                                    attachmentsController
+                                                        .attachments
+                                                        .map((file) => file.id)
+                                                        .toList(),
                                               ),
                                             );
                                             Get.back();

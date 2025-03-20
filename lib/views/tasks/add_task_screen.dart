@@ -4,12 +4,15 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/controllers/project/add_project_controller.dart';
+import 'package:project_manager/controllers/project/attachments_controller.dart';
 import 'package:project_manager/controllers/project/project_controller.dart';
 import 'package:project_manager/controllers/task/task_controller.dart';
+import 'package:project_manager/logic/project_logic.dart';
 import 'package:project_manager/models/project.dart';
 import 'package:project_manager/models/task.dart';
 import 'package:project_manager/models/user.dart';
 import 'package:project_manager/utils/color_utils.dart';
+import 'package:project_manager/views/projects/components/widgets.dart';
 import 'package:uuid/uuid.dart';
 
 // ignore: must_be_immutable
@@ -36,7 +39,12 @@ class AddTaskScreen extends StatelessWidget {
   late RxInt selectedStatus;
   late RxInt selectedPriority;
   late RxInt selectedComplexity;
+
+  final AttachmentsController attachmentsController = Get.find();
+  final List<String> attachmentIdAdded = []; // tìm các file mới được add
+  final List<String> attachmentIdDeletes = [];
   final argument = Get.arguments;
+  final ProjectLogic projectLogic = ProjectLogic();
 
   @override
   Widget build(BuildContext context) {
@@ -622,6 +630,80 @@ class AddTaskScreen extends StatelessWidget {
                             ],
                           ),
                         ),
+                        _customDivider(),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _customWidget(
+                                icon: Icons.attach_file,
+                                title: 'Attachment',
+                                color: Colors.red,
+                              ),
+                              IconButton(
+                                  onPressed: () async {
+                                    await projectLogic.pickFile();
+                                  },
+                                  icon: const Icon(Icons.add))
+                            ],
+                          ),
+                        ),
+                        Obx(
+                          () => Container(
+                            constraints: const BoxConstraints(maxHeight: 300),
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount:
+                                  attachmentsController.attachments.length,
+                              itemBuilder: (context, index) {
+                                final file =
+                                    attachmentsController.attachments[index];
+                                return Dismissible(
+                                  key: UniqueKey(),
+                                  direction: DismissDirection.endToStart,
+                                  background: Container(
+                                    alignment: Alignment.centerRight,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                    ),
+                                    child: const Icon(Icons.delete),
+                                  ),
+                                  onDismissed: (direction) {
+                                    attachmentIdDeletes.add(
+                                        attachmentsController
+                                            .attachments[index].id);
+                                    attachmentsController
+                                        .removeAttachment(index);
+
+                                    // projectDetailController.attachments
+                                    //     .removeAt(index);
+                                  },
+                                  child: ListTile(
+                                    leading: Icon(
+                                        getIconForAttachment(file.fileType)),
+                                    title: Text(
+                                      file.fileName,
+                                      overflow: TextOverflow
+                                          .ellipsis, // Hiển thị "..." nếu tên quá dài
+                                      softWrap: false,
+                                    ), // Ngăn xuống dòng),
+                                    trailing: IconButton(
+                                      // Thêm nút download
+                                      icon: const Icon(Icons.download),
+                                      onPressed: () {
+                                        projectLogic.downloadFile(
+                                          file.url,
+                                          file.fileName,
+                                        ); // Gọi hàm download
+                                      },
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 30),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -632,23 +714,29 @@ class AddTaskScreen extends StatelessWidget {
                                 Future.delayed(
                                     const Duration(milliseconds: 600));
                                 if (isAddTask) {
-                                  await taskController.addTask(Task(
-                                    title: titleController.text,
-                                    description: descriptionController.text,
-                                    startDate: DateFormat('MM/dd/yyyy, HH:mm')
-                                        .parse(startDateController.text),
-                                    endDate: DateFormat('MM/dd/yyyy, HH:mm')
-                                        .parse(dueDateController.text),
-                                    status: Status.notStarted,
-                                    priority:
-                                        Priority.values[selectedPriority.value],
-                                    assignTo: assignFors.isNotEmpty
-                                        ? assignFors.first.id
-                                        : '',
-                                    projectOwner: project.id,
-                                    complexity: Complexity
-                                        .values[selectedComplexity.value],
-                                  ));
+                                  await taskController.addTask(
+                                    Task(
+                                      title: titleController.text,
+                                      description: descriptionController.text,
+                                      startDate: DateFormat('MM/dd/yyyy, HH:mm')
+                                          .parse(startDateController.text),
+                                      endDate: DateFormat('MM/dd/yyyy, HH:mm')
+                                          .parse(dueDateController.text),
+                                      status: Status.notStarted,
+                                      priority: Priority
+                                          .values[selectedPriority.value],
+                                      assignTo: assignFors.isNotEmpty
+                                          ? assignFors.first.id
+                                          : '',
+                                      projectOwner: project.id,
+                                      complexity: Complexity
+                                          .values[selectedComplexity.value],
+                                      attachments: attachmentsController
+                                          .attachments
+                                          .map((file) => file.id)
+                                          .toList(),
+                                    ),
+                                  );
                                   await projectController.updateProject(
                                     Project(
                                       id: project.id,
@@ -667,24 +755,31 @@ class AddTaskScreen extends StatelessWidget {
                                     ),
                                   );
                                 } else {
-                                  await taskController.updateTask(Task(
-                                    id: task!.id,
-                                    title: titleController.text,
-                                    description: descriptionController.text,
-                                    startDate: DateFormat('MM/dd/yyyy, HH:mm')
-                                        .parse(startDateController.text),
-                                    endDate: DateFormat('MM/dd/yyyy, HH:mm')
-                                        .parse(dueDateController.text),
-                                    status: Status.values[selectedStatus.value],
-                                    priority:
-                                        Priority.values[selectedPriority.value],
-                                    assignTo: assignFors.isNotEmpty
-                                        ? assignFors.first.id
-                                        : '',
-                                    projectOwner: project.id,
-                                    complexity: Complexity
-                                        .values[selectedComplexity.value],
-                                  ));
+                                  await taskController.updateTask(
+                                    Task(
+                                        id: task!.id,
+                                        title: titleController.text,
+                                        description: descriptionController.text,
+                                        startDate: DateFormat(
+                                                'MM/dd/yyyy, HH:mm')
+                                            .parse(startDateController.text),
+                                        endDate: DateFormat('MM/dd/yyyy, HH:mm')
+                                            .parse(dueDateController.text),
+                                        status:
+                                            Status.values[selectedStatus.value],
+                                        priority: Priority
+                                            .values[selectedPriority.value],
+                                        assignTo: assignFors.isNotEmpty
+                                            ? assignFors.first.id
+                                            : '',
+                                        projectOwner: project.id,
+                                        complexity: Complexity
+                                            .values[selectedComplexity.value],
+                                        attachments: attachmentsController
+                                            .attachments
+                                            .map((file) => file.id)
+                                            .toList()),
+                                  );
                                 }
                               }
                             },

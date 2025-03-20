@@ -1,14 +1,12 @@
-import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
+import 'package:project_manager/logic/project_logic.dart';
 import 'package:project_manager/models/project.dart';
 import 'package:project_manager/models/user.dart';
 import 'package:project_manager/views/widgets/loading_overlay.dart';
-import 'package:http/http.dart' as http;
 
 class ProjectController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -74,9 +72,11 @@ class ProjectController extends GetxController {
           .collection('projects')
           .doc(project.id)
           .set(project.toMap());
+      // tìm các file đã được add mà chưa bị xoá khởi ui rồi thêm đánh dấu thành file đã có chủ
       if (project.attachments.isNotEmpty) {
         await markFileAsAdded(project.attachments);
       }
+
       await LoadingOverlay.hide();
       Get.back();
       Get.snackbar('Success', 'Add project success', colorText: Colors.green);
@@ -96,6 +96,11 @@ class ProjectController extends GetxController {
           .collection('projects')
           .doc(project.id)
           .update(project.toMap());
+      // tìm các file đã được add mà chưa bị xoá khởi ui rồi thêm đánh dấu thành file đã có chủ
+
+      if (project.attachments.isNotEmpty) {
+        await markFileAsAdded(project.attachments);
+      }
       await LoadingOverlay.hide();
       Get.snackbar('Success', 'Update project success',
           colorText: Colors.green);
@@ -107,7 +112,8 @@ class ProjectController extends GetxController {
     }
   }
 
-  Future<void> deleteProject(String projectId, String projectOwner) async {
+  Future<void> deleteProject(
+      String projectId, String projectOwner, List<String> fileId) async {
     Get.closeAllSnackbars();
     LoadingOverlay.show();
     try {
@@ -118,6 +124,11 @@ class ProjectController extends GetxController {
         return;
       } else {
         await _firestore.collection('projects').doc(projectId).delete();
+        if (fileId.isNotEmpty) {
+          for (final id in fileId) {
+            await deleteFileMetaData(id);
+          }
+        }
         await LoadingOverlay.hide();
         Get.snackbar('Success', 'Delete project success',
             colorText: Colors.green,
@@ -128,25 +139,6 @@ class ProjectController extends GetxController {
       if (kDebugMode) print('Delete project with error: $e');
       Get.snackbar('Error', 'Failed to delete project',
           colorText: Colors.red, duration: const Duration(seconds: 2));
-    }
-  }
-
-  Future<void> markFileAsAdded(List<String> fileIds) async {
-    const String url = "http://localhost:8080/project/api/files/markAsAdded";
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(fileIds),
-      );
-      if (response.statusCode == 200) {
-        print('Files marked as added successfully');
-      } else {
-        print(
-            'Failed to mark files as added. Status code: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error marking files as added: $e');
     }
   }
 

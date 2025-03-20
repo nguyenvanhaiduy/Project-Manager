@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
+import 'package:project_manager/logic/project_logic.dart';
 import 'package:project_manager/models/project.dart';
 import 'package:project_manager/models/task.dart';
 import 'package:project_manager/views/widgets/loading_overlay.dart';
@@ -22,7 +23,7 @@ class TaskController extends GetxController {
 
   Future<void> updateCurrentProject(Project project) async {
     currentProject.value = project;
-  }
+  } // để cập nhật lại nếu project có thêm người dùng thì ngay lập tức phần task có thể nhận được dữ liệu người dùng mới
 
   Stream<List<Task>> fetchData() {
     return _firestore
@@ -51,7 +52,12 @@ class TaskController extends GetxController {
     try {
       await _firestore.collection('tasks').doc(task.id).set(task.toMap());
       // tasks.add(task);
+      // tìm các file đã được add mà chưa bị xoá khởi ui rồi thêm đánh dấu thành file đã có chủ
+      if (task.attachments.isNotEmpty) {
+        await markFileAsAdded(task.attachments);
+      }
       await LoadingOverlay.hide();
+
       Get.back();
       Get.snackbar('Success', 'Add task success',
           colorText: Colors.green, duration: const Duration(milliseconds: 300));
@@ -67,7 +73,12 @@ class TaskController extends GetxController {
     LoadingOverlay.show();
     try {
       await _firestore.collection('tasks').doc(task.id).update(task.toMap());
+      // tìm các file đã được add mà chưa bị xoá khởi ui rồi thêm đánh dấu thành file đã có chủ
+      if (task.attachments.isNotEmpty) {
+        await markFileAsAdded(task.attachments);
+      }
       await LoadingOverlay.hide();
+
       // Get.back();
       Get.snackbar('Success', 'Update task success',
           colorText: Colors.green, duration: const Duration(milliseconds: 900));
@@ -79,12 +90,17 @@ class TaskController extends GetxController {
     }
   }
 
-  Future<void> deleteTask(String taskId) async {
+  Future<void> deleteTask(String taskId, List<String> fileId) async {
     Get.closeAllSnackbars();
     LoadingOverlay.show();
     try {
       await _firestore.collection('tasks').doc(taskId).delete();
       tasks.removeWhere((task) => task.id == taskId);
+      if (fileId.isNotEmpty) {
+        for (final id in fileId) {
+          await deleteFileMetaData(id);
+        }
+      }
       await LoadingOverlay.hide();
       Get.snackbar(
         'Success',

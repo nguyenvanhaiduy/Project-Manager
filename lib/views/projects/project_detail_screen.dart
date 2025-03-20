@@ -5,16 +5,19 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
+import 'package:project_manager/controllers/project/attachments_controller.dart';
 import 'package:project_manager/controllers/project/progress_project_controller.dart';
 import 'package:project_manager/controllers/project/project_controller.dart';
 import 'package:project_manager/controllers/project/project_detail_controller.dart';
 import 'package:project_manager/controllers/task/task_controller.dart';
 import 'package:project_manager/controllers/theme_controller.dart';
+import 'package:project_manager/logic/project_logic.dart';
 import 'package:project_manager/models/project.dart';
 import 'package:project_manager/models/user.dart';
 import 'package:project_manager/routers/app_routers.dart';
 import 'package:project_manager/utils/color_utils.dart';
 import 'package:project_manager/views/projects/components/build_avatar.dart';
+import 'package:project_manager/views/projects/components/widgets.dart';
 
 import 'package:project_manager/views/widgets/widgets.dart';
 
@@ -31,10 +34,16 @@ class ProjectDetailScreen extends StatelessWidget {
   final ProjectController projectController = Get.find();
   final ProjectDetailController projectDetailController =
       Get.put(ProjectDetailController());
+  final ProgressProjectController progressProjectController = Get.find();
 
   final emailController = TextEditingController();
 
   final TaskController taskController = Get.find();
+  final AttachmentsController attachmentsController = Get.find();
+  final List<String> attachmentIdAdded = []; // tìm các file mới được add
+  final List<String> attachmentIdDeletes = []; // Lưa các file đã bị xoá
+
+  final projectLogic = ProjectLogic();
 
   Future<void> confirmDeleteUser(String name, String id) async {
     await Get.dialog(
@@ -135,7 +144,8 @@ class ProjectDetailScreen extends StatelessWidget {
       dueDateController.text = projectDetailController.dueDate.value;
     }
 
-    // final progressProjectController = Get.put(ProgressProjectController());
+    // print('name project: ${taskController.currentProject.value!.title}');
+    // print('name lenght: ${taskController.tasks.length}');
 
     void closeController() {
       // projectDetailController.dispose();
@@ -672,6 +682,106 @@ class ProjectDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
                 const Divider(),
+                // const SizedBox(height: 15),
+                // Row(
+                //   children: [
+                //     Expanded(
+                //       child: customLable(
+                //           icon: Icons.attach_file,
+                //           title: 'Attachment',
+                //           color: Colors.red),
+                //     ),
+                //     IconButton(
+                //       onPressed: () {
+                //         projectLogic.pickFile();
+                //       },
+                //       icon: const Icon(Icons.add),
+                //     )
+                //   ],
+                // ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Attachment'.tr,
+                        style: Get.textTheme.bodyLarge!
+                            .copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const Spacer(),
+                      isOwner
+                          ? IconButton(
+                              tooltip: 'Add file',
+                              onPressed: () async {
+                                await projectLogic.pickFile();
+                                // projectDetailController.attachments.add(
+                                //   attachmentsController.attachments.last.id,
+                                // );
+                                attachmentIdAdded.add(
+                                    attachmentsController.attachments.last.id);
+                                print(
+                                    'name file: ${attachmentsController.attachments.last.fileName}');
+                              },
+                              icon: const Icon(Icons.add),
+                              style: IconButton.styleFrom(
+                                  backgroundColor: Colors.red),
+                            )
+                          : const SizedBox()
+                    ],
+                  ),
+                ),
+                Obx(
+                  () => Container(
+                    constraints: const BoxConstraints(maxHeight: 300),
+                    child: ListView.builder(
+                      padding: const EdgeInsets.only(left: 20),
+                      itemCount: attachmentsController.attachments.length,
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        final file = attachmentsController.attachments[index];
+                        return Dismissible(
+                          key: UniqueKey(),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            alignment: Alignment.centerRight,
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                            ),
+                            child: const Icon(Icons.delete),
+                          ),
+                          onDismissed: (direction) {
+                            attachmentIdDeletes.add(
+                                attachmentsController.attachments[index].id);
+                            attachmentsController.removeAttachment(index);
+                            projectDetailController.attachments.removeAt(index);
+                          },
+                          child: ListTile(
+                            leading: Icon(getIconForAttachment(file.fileType)),
+                            title: Text(
+                              file.fileName,
+                              overflow: TextOverflow
+                                  .ellipsis, // Hiển thị "..." nếu tên quá dài
+                              softWrap: false,
+                            ), // Ngăn xuống dòng),
+                            trailing: IconButton(
+                              // Thêm nút download
+                              icon: const Icon(Icons.download),
+                              onPressed: () {
+                                projectLogic.downloadFile(
+                                  file.url,
+                                  file.fileName,
+                                ); // Gọi hàm download
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                const Divider(),
                 const SizedBox(height: 15),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -794,39 +904,41 @@ class ProjectDetailScreen extends StatelessWidget {
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
                             if (projectDetailController.hasChanges.value) {
-                              try {
-                                final newProject = Project(
-                                  id: project.id,
-                                  title: titleController.text.trim(),
-                                  description:
-                                      descriptionController.text.trim(),
-                                  status: Status.values[projectDetailController
-                                      .selectStatusIndex.value],
-                                  priority: Priority.values[
-                                      projectDetailController
-                                          .selectPriorityIndex.value],
-                                  startDate: DateFormat('MM/dd/yyyy, HH:mm')
-                                      .parse(startDateController.text),
-                                  endDate: DateFormat('MM/dd/yyyy, HH:mm')
-                                      .parse(dueDateController.text),
-                                  taskIds: project.taskIds,
-                                  userIds: projectDetailController.userIds,
-                                  attachments: [],
-                                  owner: project.owner,
-                                );
-                                await projectController
-                                    .updateProject(newProject);
-                                taskController.updateCurrentProject(newProject);
-                                projectDetailController.hasChanges.value =
-                                    false;
-                              } catch (e) {
-                                Get.snackbar(
-                                    'Error', 'Can not update the project',
-                                    colorText: Colors.red);
+                              final newProject = Project(
+                                id: project.id,
+                                title: titleController.text.trim(),
+                                description: descriptionController.text.trim(),
+                                status: Status.values[projectDetailController
+                                    .selectStatusIndex.value],
+                                priority: Priority.values[
+                                    projectDetailController
+                                        .selectPriorityIndex.value],
+                                startDate: DateFormat('MM/dd/yyyy, HH:mm')
+                                    .parse(startDateController.text),
+                                endDate: DateFormat('MM/dd/yyyy, HH:mm')
+                                    .parse(dueDateController.text),
+                                taskIds: project.taskIds,
+                                userIds: projectDetailController.userIds,
+                                attachments:
+                                    projectDetailController.attachments,
+                                owner: project.owner,
+                              );
+
+                              // tìm các file đã được add mà chưa bị xoá khởi ui rồi thêm đánh dấu thành file đã có chủ
+                              if (attachmentIdDeletes.isNotEmpty) {
+                                for (final id in attachmentIdDeletes) {
+                                  await deleteFileMetaData(id);
+                                }
+                                print('Delete success');
+                              } else {
+                                print('Delete failed');
                               }
-                            } else {
-                              print('nothing update');
+                              await projectController.updateProject(newProject);
+                              taskController.updateCurrentProject(newProject);
+                              projectDetailController.hasChanges.value = false;
                             }
+                          } else {
+                            print('nothing update');
                           }
                         },
                         style: OutlinedButton.styleFrom(
