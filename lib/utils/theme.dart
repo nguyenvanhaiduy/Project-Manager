@@ -34,6 +34,9 @@ TextTheme _textTheme(Color color) => TextTheme(
       bodyMedium: TextStyle(color: color),
       bodyLarge: TextStyle(color: color),
       bodySmall: TextStyle(color: color),
+      titleLarge: TextStyle(color: color),
+      titleMedium: TextStyle(color: color),
+      titleSmall: TextStyle(color: color),
       headlineLarge: TextStyle(color: color),
     );
 

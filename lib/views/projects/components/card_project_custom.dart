@@ -5,6 +5,7 @@ import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/controllers/project/project_controller.dart';
 import 'package:project_manager/models/project.dart';
 import 'package:project_manager/models/user.dart';
+import 'package:project_manager/routers/app_routers.dart';
 import 'package:project_manager/utils/color_utils.dart';
 import 'package:project_manager/views/projects/components/build_avatar.dart';
 import 'package:project_manager/views/projects/components/build_plus_avatar.dart';
@@ -31,6 +32,8 @@ class CardProjectCustom extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     _fetchUsers();
+    int amountAttachment = project.attachments.length;
+
     return InkWell(
       borderRadius: BorderRadius.circular(20),
       onTap: onTap,
@@ -39,7 +42,7 @@ class CardProjectCustom extends StatelessWidget {
         width: double.infinity,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: Get.isDarkMode ? Colors.black26 : Colors.white,
+          color: Get.isDarkMode ? Colors.black26 : Colors.black26,
           border: Border.all(
             style: BorderStyle.solid,
             color: Theme.of(context).brightness == Brightness.dark
@@ -57,10 +60,10 @@ class CardProjectCustom extends StatelessWidget {
                 Expanded(
                   child: Text(
                     project.title,
-                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                          overflow: TextOverflow.ellipsis,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                        overflow: TextOverflow.ellipsis,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20),
                   ),
                 ),
                 // IconButton(
@@ -74,7 +77,9 @@ class CardProjectCustom extends StatelessWidget {
                 // ),
                 PopupMenuButton(
                   onSelected: (value) {
-                    if (value == 'delete') {
+                    if (value == 'detail') {
+                      Get.toNamed(AppRouters.projectDetail);
+                    } else if (value == 'delete') {
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
@@ -107,6 +112,10 @@ class CardProjectCustom extends StatelessWidget {
                   },
                   itemBuilder: (context) => [
                     PopupMenuItem(
+                      value: 'detail',
+                      child: Text('Detail'.tr),
+                    ),
+                    PopupMenuItem(
                       value: 'delete',
                       child: Text('delete'.tr),
                     ),
@@ -121,9 +130,42 @@ class CardProjectCustom extends StatelessWidget {
               ],
             ),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Task Done: ',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    Text(
+                      '56/140',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall!
+                          .copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                Text('65%'),
+              ],
+            ),
+            Container(
+              height: 5,
+              // padding: const EdgeInsets.only(right: 10),
+              decoration:
+                  BoxDecoration(borderRadius: BorderRadius.circular(10)),
+              child: LinearProgressIndicator(
+                value: 0.3,
+                borderRadius: BorderRadius.circular(10),
+                valueColor: AlwaysStoppedAnimation(Colors.blue),
+              ),
+            ),
+            const SizedBox(height: 15),
+            Row(
               children: [
                 Container(
-                  height: 30,
+                  height: 25,
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   decoration: BoxDecoration(
                     color: getPriorityColor(project.priority),
@@ -141,7 +183,7 @@ class CardProjectCustom extends StatelessWidget {
                 const SizedBox(width: 10),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
-                  height: 30,
+                  height: 25,
                   decoration: BoxDecoration(
                     color: getStatusColor(project.status),
                     borderRadius: BorderRadius.circular(15),
@@ -174,47 +216,58 @@ class CardProjectCustom extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: 35,
-                  width: project.userIds.length == 1
-                      ? (30 * project.userIds.length.toDouble()) + 10
-                      : project.userIds.length > 2
-                          ? (30 * 3) - 2
-                          : (30 * 2) + 4,
-                  child: Stack(
-                    children: [
-                      for (int i = 0;
-                          i <
-                              (project.userIds.length < 3
-                                  ? project.userIds.length
-                                  : 3);
-                          i++)
-                        StreamBuilder<User?>(
-                            stream: Stream.fromFuture(projectController.getUser(
-                                userId: project.userIds[i])),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const SizedBox();
-                              } else if (!snapshot.hasData) {
-                                return const Icon(Icons.person);
-                              } else {
-                                return i > 1
-                                    ? Positioned(
-                                        left: 24.0 * i,
-                                        child: BuildPlusAvatar(
-                                          count: project.userIds.length - 2,
-                                        ))
-                                    : Positioned(
-                                        left: 24.0 * i,
-                                        child: BuildAvatar(
-                                          user: snapshot.data!,
-                                          size: 16,
-                                        ));
-                              }
-                            })
-                    ],
-                  ),
+                Row(
+                  children: [
+                    const Icon(Icons.link_outlined),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$amountAttachment',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    SizedBox(
+                      height: 35,
+                      width: project.userIds.length == 1
+                          ? (30 * project.userIds.length.toDouble()) + 10
+                          : project.userIds.length > 2
+                              ? (30 * 3) - 2
+                              : (30 * 2) + 4,
+                      child: Stack(
+                        children: [
+                          for (int i = 0;
+                              i <
+                                  (project.userIds.length < 3
+                                      ? project.userIds.length
+                                      : 3);
+                              i++)
+                            StreamBuilder<User?>(
+                              stream: Stream.fromFuture(projectController
+                                  .getUser(userId: project.userIds[i])),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const SizedBox();
+                                } else if (!snapshot.hasData) {
+                                  return const Icon(Icons.person);
+                                } else {
+                                  return i > 1
+                                      ? Positioned(
+                                          left: 24.0 * i,
+                                          child: BuildPlusAvatar(
+                                            count: project.userIds.length - 2,
+                                          ))
+                                      : Positioned(
+                                          left: 24.0 * i,
+                                          child: BuildAvatar(
+                                            user: snapshot.data!,
+                                            size: 16,
+                                          ));
+                                }
+                              },
+                            )
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

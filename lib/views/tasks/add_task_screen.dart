@@ -681,7 +681,7 @@ class AddTaskScreen extends StatelessWidget {
                                   },
                                   child: ListTile(
                                     leading: Icon(
-                                        getIconForAttachment(file.fileType)),
+                                        getIconForAttachment(file.fileName)),
                                     title: Text(
                                       file.fileName,
                                       overflow: TextOverflow

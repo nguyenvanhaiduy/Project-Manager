@@ -15,7 +15,7 @@ class PagesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      const HomeScreen(),
+      HomeScreen(),
       ProjectScreen(),
       const AnalyticsScreen(),
       CustomDrawer(),
@@ -33,7 +33,7 @@ class PagesScreen extends StatelessWidget {
                   items: [
                     BottomNavyBarItem(
                       icon: const Icon(Icons.apps),
-                      title: const Text('Home'),
+                      title: const Text('Dashboard'),
                       activeColor: Colors.red,
                     ),
                     BottomNavyBarItem(

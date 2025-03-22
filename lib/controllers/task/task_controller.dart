@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:path/path.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/logic/project_logic.dart';
 import 'package:project_manager/models/project.dart';
@@ -56,6 +57,7 @@ class TaskController extends GetxController {
       if (task.attachments.isNotEmpty) {
         await markFileAsAdded(task.attachments);
       }
+      tasks.bindStream(fetchData());
       await LoadingOverlay.hide();
 
       Get.back();
@@ -72,16 +74,17 @@ class TaskController extends GetxController {
     Get.closeAllSnackbars();
     LoadingOverlay.show();
     try {
+      tasks.bindStream(fetchData());
+
       await _firestore.collection('tasks').doc(task.id).update(task.toMap());
       // tìm các file đã được add mà chưa bị xoá khởi ui rồi thêm đánh dấu thành file đã có chủ
       if (task.attachments.isNotEmpty) {
         await markFileAsAdded(task.attachments);
       }
       await LoadingOverlay.hide();
-
       // Get.back();
-      Get.snackbar('Success', 'Update task success',
-          colorText: Colors.green, duration: const Duration(milliseconds: 900));
+      // Get.snackbar('Success', 'Update task success',
+      //     colorText: Colors.green, duration: const Duration(milliseconds: 900));
     } catch (e) {
       if (kDebugMode) print('Update task with error: $e');
       Get.closeCurrentSnackbar();
@@ -94,13 +97,17 @@ class TaskController extends GetxController {
     Get.closeAllSnackbars();
     LoadingOverlay.show();
     try {
+      tasks.bindStream(fetchData());
+
       await _firestore.collection('tasks').doc(taskId).delete();
+
       tasks.removeWhere((task) => task.id == taskId);
       if (fileId.isNotEmpty) {
         for (final id in fileId) {
           await deleteFileMetaData(id);
         }
       }
+
       await LoadingOverlay.hide();
       Get.snackbar(
         'Success',

@@ -82,7 +82,6 @@ class ProjectScreen extends StatelessWidget {
                                         projectController.projects[index]);
                                     taskController.tasks
                                         .bindStream(taskController.fetchData());
-
                                     Get.toNamed(AppRouters.projectDetail);
                                   },
                                 );
@@ -94,7 +93,7 @@ class ProjectScreen extends StatelessWidget {
                                 crossAxisCount: Get.size.width ~/ 400,
                                 crossAxisSpacing: 20,
                                 mainAxisSpacing: 20,
-                                mainAxisExtent: kIsWeb ? 135 : 145,
+                                mainAxisExtent: kIsWeb ? 135 : 175,
                               ),
                               itemCount: projectController.projects.length,
                               itemBuilder: (context, index) {

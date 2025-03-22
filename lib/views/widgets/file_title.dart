@@ -15,19 +15,37 @@ class FileTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(color: color),
-      margin: EdgeInsets.symmetric(vertical: 10),
-      padding: EdgeInsets.all(10),
+      // decoration:
+      //     BoxDecoration(color: color, borderRadius: BorderRadius.circular(10)),
+      // padding: const EdgeInsets.all(10),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Text(
-                fileName,
-                overflow: TextOverflow.ellipsis,
-                softWrap: false,
-              ),
-            ],
+          Expanded(
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: color,
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    fileName,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: false,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            // padding: EdgeInsets.all(0),
+            // tooltip: 'Download',
+            onPressed: download,
+            icon: const Icon(
+              Icons.download,
+            ),
           )
         ],
       ),

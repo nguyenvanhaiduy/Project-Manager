@@ -533,7 +533,7 @@ class AddProjectScreen extends StatelessWidget {
                           attachmentsController.removeAttachment(index);
                         },
                         child: ListTile(
-                          leading: Icon(getIconForAttachment(file.fileType)),
+                          leading: Icon(getIconForAttachment(file.fileName)),
                           title: Text(file.fileName),
                           trailing: IconButton(
                             // Thêm nút download

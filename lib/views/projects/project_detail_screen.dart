@@ -18,6 +18,7 @@ import 'package:project_manager/routers/app_routers.dart';
 import 'package:project_manager/utils/color_utils.dart';
 import 'package:project_manager/views/projects/components/build_avatar.dart';
 import 'package:project_manager/views/projects/components/widgets.dart';
+import 'package:project_manager/views/widgets/file_title.dart';
 
 import 'package:project_manager/views/widgets/widgets.dart';
 
@@ -39,7 +40,8 @@ class ProjectDetailScreen extends StatelessWidget {
   final emailController = TextEditingController();
 
   final TaskController taskController = Get.find();
-  final AttachmentsController attachmentsController = Get.find();
+  final AttachmentsController attachmentsController =
+      Get.put(AttachmentsController());
   final List<String> attachmentIdAdded = []; // tìm các file mới được add
   final List<String> attachmentIdDeletes = []; // Lưa các file đã bị xoá
 
@@ -682,23 +684,6 @@ class ProjectDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
                 const Divider(),
-                // const SizedBox(height: 15),
-                // Row(
-                //   children: [
-                //     Expanded(
-                //       child: customLable(
-                //           icon: Icons.attach_file,
-                //           title: 'Attachment',
-                //           color: Colors.red),
-                //     ),
-                //     IconButton(
-                //       onPressed: () {
-                //         projectLogic.pickFile();
-                //       },
-                //       icon: const Icon(Icons.add),
-                //     )
-                //   ],
-                // ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Row(
@@ -710,77 +695,98 @@ class ProjectDetailScreen extends StatelessWidget {
                             .copyWith(fontWeight: FontWeight.bold),
                       ),
                       const Spacer(),
-                      isOwner
-                          ? IconButton(
-                              tooltip: 'Add file',
-                              onPressed: () async {
-                                await projectLogic.pickFile();
-                                // projectDetailController.attachments.add(
-                                //   attachmentsController.attachments.last.id,
-                                // );
-                                attachmentIdAdded.add(
-                                    attachmentsController.attachments.last.id);
-                                print(
-                                    'name file: ${attachmentsController.attachments.last.fileName}');
-                              },
-                              icon: const Icon(Icons.add),
-                              style: IconButton.styleFrom(
-                                  backgroundColor: Colors.red),
-                            )
-                          : const SizedBox()
+                      // isOwner
+                      //     ? IconButton(
+                      //         tooltip: 'Add file',
+                      //         onPressed: () async {
+                      //           await projectLogic.pickFile();
+                      //           projectDetailController.attachments.add(
+                      //             attachmentsController.attachments.last.id,
+                      //           );
+                      //           attachmentIdAdded.add(
+                      //               attachmentsController.attachments.last.id);
+                      //           print(
+                      //               'name file: ${attachmentsController.attachments.last.fileName}');
+                      //         },
+                      //         icon: const Icon(Icons.add),
+                      //         // style: IconButton.styleFrom(
+                      //         //     backgroundColor: Colors.red),
+                      //       )
+                      //     : const SizedBox()
                     ],
                   ),
                 ),
                 Obx(
                   () => Container(
-                    constraints: const BoxConstraints(maxHeight: 300),
-                    child: ListView.builder(
-                      padding: const EdgeInsets.only(left: 20),
-                      itemCount: attachmentsController.attachments.length,
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) {
-                        final file = attachmentsController.attachments[index];
-                        return Dismissible(
-                          key: UniqueKey(),
-                          direction: DismissDirection.endToStart,
-                          background: Container(
-                            alignment: Alignment.centerRight,
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                            ),
-                            child: const Icon(Icons.delete),
+                    constraints: BoxConstraints(
+                        maxHeight: attachmentsController.attachments.length > 6
+                            ? 300
+                            : attachmentsController.attachments.length * 50 +
+                                50),
+                    child: Stack(
+                      children: [
+                        ListView.separated(
+                          padding: const EdgeInsets.only(left: 20),
+                          itemCount: attachmentsController.attachments.length,
+                          shrinkWrap: true,
+                          separatorBuilder: (context, index) => const SizedBox(
+                            height: 4,
                           ),
-                          onDismissed: (direction) {
-                            attachmentIdDeletes.add(
-                                attachmentsController.attachments[index].id);
-                            attachmentsController.removeAttachment(index);
-                            projectDetailController.attachments.removeAt(index);
+                          itemBuilder: (context, index) {
+                            final file =
+                                attachmentsController.attachments[index];
+                            return Dismissible(
+                                key: UniqueKey(),
+                                direction: DismissDirection.endToStart,
+                                background: Container(
+                                  alignment: Alignment.centerRight,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                  ),
+                                  child: const Icon(Icons.delete),
+                                ),
+                                onDismissed: (direction) {
+                                  attachmentIdDeletes.add(attachmentsController
+                                      .attachments[index].id);
+                                  attachmentsController.removeAttachment(index);
+                                  projectDetailController.attachments
+                                      .removeAt(index);
+                                },
+                                child: FileTitle(
+                                  icon: getIconForAttachment(file.fileName),
+                                  fileName: file.fileName,
+                                  color: getColorForAttachment(file.fileName),
+                                  download: () {
+                                    projectLogic.downloadFile(
+                                        file.url, file.fileName);
+                                  },
+                                ));
                           },
-                          child: ListTile(
-                            leading: Icon(getIconForAttachment(file.fileType)),
-                            title: Text(
-                              file.fileName,
-                              overflow: TextOverflow
-                                  .ellipsis, // Hiển thị "..." nếu tên quá dài
-                              softWrap: false,
-                            ), // Ngăn xuống dòng),
-                            trailing: IconButton(
-                              // Thêm nút download
-                              icon: const Icon(Icons.download),
-                              onPressed: () {
-                                projectLogic.downloadFile(
-                                  file.url,
-                                  file.fileName,
-                                ); // Gọi hàm download
-                              },
-                            ),
-                          ),
-                        );
-                      },
+                        ),
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: isOwner
+                              ? IconButton(
+                                  tooltip: 'Add file',
+                                  onPressed: () async {
+                                    await projectLogic.pickFile();
+                                    projectDetailController.attachments.add(
+                                      attachmentsController.attachments.last.id,
+                                    );
+                                    attachmentIdAdded.add(attachmentsController
+                                        .attachments.last.id);
+                                    print(
+                                        'name file: ${attachmentsController.attachments.last.fileName}');
+                                  },
+                                  icon: const Icon(Icons.add),
+                                )
+                              : const SizedBox(),
+                        )
+                      ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 15),
+                // const SizedBox(height: 15),
                 const Divider(),
                 const SizedBox(height: 15),
                 Container(

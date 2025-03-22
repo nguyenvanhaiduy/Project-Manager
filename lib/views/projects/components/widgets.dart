@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 Widget customLable(
     {required IconData icon,
@@ -57,19 +58,89 @@ IconData getIconForAttachment(String attachment) {
   final extension = attachment.split('.').last.toLowerCase();
   switch (extension) {
     case 'pdf':
-      return Icons.picture_as_pdf;
+      return Icons.picture_as_pdf_outlined;
     case 'doc':
     case 'docx':
-      return Icons.description;
+      return FontAwesomeIcons.fileWord;
     case 'xls':
     case 'xlsx':
-      return Icons.grid_on;
+      return FontAwesomeIcons.fileExcel;
+    case 'ppt':
+    case 'pptx':
+      return FontAwesomeIcons.filePowerpoint;
+    case 'txt':
+      return FontAwesomeIcons.fileLines;
+    case 'zip':
+    case 'rar':
+    case '7z':
+      // ignore: deprecated_member_use
+      return FontAwesomeIcons.save;
+    // case 'mp3':
+    // case 'wav':
+    // case 'flac':
+    //   return FontAwesomeIcons.fileAudio;
+    // case 'mp4':
+    // case 'avi':
+    // case 'mkv':
+    //   return FontAwesomeIcons.fileVideo;
     case 'jpg':
     case 'jpeg':
     case 'png':
     case 'gif':
-      return Icons.image;
+    case 'svg':
+      return FontAwesomeIcons.fileImage;
+    case 'html':
+    case 'css':
+    case 'js':
+    case 'json':
+    case 'xml':
+      return FontAwesomeIcons.fileCode;
     default:
-      return Icons.insert_drive_file;
+      return FontAwesomeIcons.file;
+  }
+}
+
+Color getColorForAttachment(String attachment) {
+  final extension = attachment.split('.').last.toLowerCase();
+  switch (extension) {
+    case 'pdf':
+      return Colors.red;
+    case 'doc':
+    case 'docx':
+      return Colors.blue;
+    case 'xls':
+    case 'xlsx':
+      return Colors.green;
+    case 'ppt':
+    case 'pptx':
+      return Colors.orange;
+    case 'txt':
+      return Colors.grey;
+    case 'zip':
+    case 'rar':
+    case '7z':
+      return Colors.brown;
+    // case 'mp3':
+    // case 'wav':
+    // case 'flac':
+    //   return Colors.purple;
+    // case 'mp4':
+    // case 'avi':
+    // case 'mkv':
+    //   return Colors.indigo;
+    case 'jpg':
+    case 'jpeg':
+    case 'png':
+    case 'gif':
+    case 'svg':
+      return Colors.orange;
+    case 'html':
+    case 'css':
+    case 'js':
+    case 'json':
+    case 'xml':
+      return Colors.teal;
+    default:
+      return Colors.grey;
   }
 }
