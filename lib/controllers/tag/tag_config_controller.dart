@@ -31,6 +31,17 @@ class TagConfigController extends GetxController {
     super.onInit();
   }
 
+  @override
+  void onClose() {
+    for (var controller in tagEdittingController) {
+      controller.dispose();
+    }
+    for (var node in focusNodes) {
+      node.dispose();
+    }
+    super.onClose();
+  }
+
   void chageActive() {
     isActive.value = !isActive.value;
   }

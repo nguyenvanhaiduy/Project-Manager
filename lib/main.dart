@@ -9,6 +9,7 @@ import 'package:project_manager/utils/app_translations.dart';
 import 'package:project_manager/utils/theme.dart';
 import 'package:project_manager/views/auths/splash_screen.dart';
 
+// import 'package:flutter_web_plugins/flutter_web_plugins.dart'; // Import flutter_web_plugins
 void main() async {
   WidgetsFlutterBinding
       .ensureInitialized(); //  khởi tạo tất cả các kết nối framework cần thiết cho việc sử dụng các plugins.
@@ -16,6 +17,9 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await GetStorage.init();
+  // setUrlStrategy(
+  //     PathUrlStrategy()); // Sử dụng PathLocationStrategy (nếu có thể cấu hình server)
+
   runApp(const MyApp());
 }
 
@@ -34,7 +38,11 @@ class MyApp extends StatelessWidget {
       translations: AppTranslations(),
       locale: const Locale('en', 'US'),
       fallbackLocale: const Locale('vi', 'VN'),
-      initialRoute: '/',
+      // initialRoute: '/',
+      unknownRoute: GetPage(
+        name: '/',
+        page: () => const SplashScreen(),
+      ), // Khi không tìm thấy trang, về '/'
       getPages: AppPages.pages,
     );
   }

@@ -19,6 +19,8 @@ class TagCreateOrEditScreen extends StatelessWidget {
       ? Map<String, dynamic>.from(Get.arguments)
       : {};
 
+  final _formKey = GlobalKey<FormState>(); // Di chuyển ra đây
+
   @override
   Widget build(BuildContext context) {
     TagConfigController tagConfigController;
@@ -133,7 +135,6 @@ class TagCreateOrEditScreen extends StatelessWidget {
                                           await tagController.editTag(newTag);
                                         }
                                       } else {
-                                        final formKey = GlobalKey<FormState>();
                                         Get.dialog(
                                           Center(
                                             child: Material(
@@ -160,7 +161,7 @@ class TagCreateOrEditScreen extends StatelessWidget {
                                                       BorderRadius.circular(10),
                                                 ),
                                                 child: Form(
-                                                  key: formKey,
+                                                  key: _formKey,
                                                   autovalidateMode:
                                                       AutovalidateMode
                                                           .onUserInteraction,
@@ -175,7 +176,7 @@ class TagCreateOrEditScreen extends StatelessWidget {
                                                           controller:
                                                               titleController,
                                                           onChanged: (value) {
-                                                            formKey
+                                                            _formKey
                                                                 .currentState!
                                                                 .validate();
                                                             tagController.tags
@@ -302,7 +303,7 @@ class TagCreateOrEditScreen extends StatelessWidget {
                                                             ),
                                                             onPressed:
                                                                 () async {
-                                                              if (formKey
+                                                              if (_formKey
                                                                   .currentState!
                                                                   .validate()) {
                                                                 await tagController.createTag(Tag(

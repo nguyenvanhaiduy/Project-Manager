@@ -13,9 +13,10 @@ import 'package:path_provider/path_provider.dart'; // thư viện này để có
 import 'package:path/path.dart'
     as path; // thư viện này để tạo đường dãn lưu file
 
-// const baseUrl = "http://192.168.1.23:8080/project/api/files";// địa chỉ wifi dứoi hn
 const baseUrl =
-    "http://192.168.1.221:8080/project/api/files"; // địa chỉ wifi ở nhà
+    "http://192.168.1.23:8080/project/api/files"; // địa chỉ wifi dứoi hn
+// const baseUrl =
+//     "http://192.168.1.41:8080/project/api/files"; // địa chỉ wifi ở nhà
 
 class ProjectLogic {
   final attachmentController = Get.find<AttachmentsController>();
@@ -134,8 +135,9 @@ class ProjectLogic {
             fileType: jsonRespose['fileType'],
             url: '$baseUrl/$fileId');
       } else {
+        print('url: $baseUrl/$fileId');
         print(
-            'Failed to get file metadata. Status code: ${response.statusCode}');
+            'Failed to get file metadata. Status codeasdfasdf: ${response.statusCode}');
         return null;
       }
     } catch (e) {

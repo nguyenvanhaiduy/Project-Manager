@@ -12,136 +12,147 @@ class ProjectController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final AuthController _authController = Get.find();
   RxList<Project> projects = <Project>[].obs;
-  RxString currentSort = 'date'.obs; // Mặc định sắp xếp theo date
+  late final RxList<Project> filteredProjects;
+  RxString currentSort = 'date'.obs; // Mặc định sắp xếp theo ngày
+  RxBool isLoading = true.obs;
 
   @override
   void onInit() {
     super.onInit();
+    filteredProjects = <Project>[].obs;
+
     projects.bindStream(fetchProjects());
+    filteredProjects.bindStream(fetchProjects());
   }
 
-  // @override
-  // void onReady() {
-  //   super.onReady();
-  //   projects.bindStream(fetchProjects());
-  //   print('askldjflaksjdf');
-  // }
-
+  /// Hàm xử lý sắp xếp danh sách dự án
   void sortProjects() {
     if (currentSort.value == 'status') {
       projects.sort((a, b) => a.status.index.compareTo(b.status.index));
+      filteredProjects.sort((a, b) => a.status.index.compareTo(b.status.index));
     } else if (currentSort.value == 'priority') {
       projects.sort((a, b) => a.priority.index.compareTo(b.priority.index));
+      filteredProjects
+          .sort((a, b) => a.priority.index.compareTo(b.priority.index));
     } else {
       projects.sort((a, b) => b.startDate.compareTo(a.startDate));
+      filteredProjects.sort((a, b) => b.startDate.compareTo(a.startDate));
+    }
+
+    // Cập nhật danh sách kèm hiệu ứng
+    // projects.refresh();
+  }
+
+  /// Thay đổi tiêu chí sắp xếp và cập nhật UI
+  void changeSort(String newSort) {
+    if (currentSort.value != newSort) {
+      currentSort.value = newSort;
+      sortProjects();
     }
   }
 
-  void changeSort(String newSort) {
-    currentSort.value = newSort;
-    sortProjects();
+  void searchProject(String query) {
+    if (query.isEmpty) {
+      filteredProjects.assignAll(projects);
+    } else {
+      filteredProjects.assignAll(projects
+          .where((p) => p.title.toLowerCase().contains(query.toLowerCase())));
+    }
   }
 
+  /// Lấy danh sách project từ Firestore
   Stream<List<Project>> fetchProjects() {
     return _firestore
         .collection('projects')
-        .where('users', arrayContains: _authController.currentUser.value!.id)
+        .where('users', arrayContains: _authController.currentUser.value?.id)
         .snapshots()
         .map((snapshot) {
-      final List<Project> projects = snapshot.docs
+      isLoading.value = true; // Bắt đầu tải
+      final data = snapshot.docs
           .map((doc) => Project.fromMap(data: doc.data()))
           .toList();
-
-      if (currentSort.value == 'status') {
-        projects.sort((a, b) => a.status.index.compareTo(b.status.index));
-      } else if (currentSort.value == 'priority') {
-        projects.sort((a, b) => a.priority.index.compareTo(b.priority.index));
-      } else {
-        projects.sort((a, b) => b.startDate.compareTo(a.startDate));
-      }
-      return projects;
+      isLoading.value = false; // Đã tải xong
+      return data;
     });
   }
 
+  /// Thêm project mới vào Firestore
   Future<void> addProject(Project project) async {
-    Get.closeAllSnackbars();
     try {
       LoadingOverlay.show();
-
       await _firestore
           .collection('projects')
           .doc(project.id)
           .set(project.toMap());
-      // tìm các file đã được add mà chưa bị xoá khởi ui rồi thêm đánh dấu thành file đã có chủ
+
+      // Nếu có file đính kèm, đánh dấu đã thêm
       if (project.attachments.isNotEmpty) {
         await markFileAsAdded(project.attachments);
       }
 
-      await LoadingOverlay.hide();
+      LoadingOverlay.hide();
       Get.back();
-      Get.snackbar('Success', 'Add project success', colorText: Colors.green);
+      // Get.snackbar('Success', 'Project added successfully!',
+      //     colorText: Colors.green);
     } catch (e) {
-      await LoadingOverlay.hide();
+      LoadingOverlay.hide();
       if (kDebugMode) print('Failed to add project: $e');
-
       Get.snackbar('Error', 'Failed to add project', colorText: Colors.red);
     }
   }
 
+  /// Cập nhật thông tin project
   Future<void> updateProject(Project project) async {
-    Get.closeAllSnackbars();
     try {
       LoadingOverlay.show();
       await _firestore
           .collection('projects')
           .doc(project.id)
           .update(project.toMap());
-      // tìm các file đã được add mà chưa bị xoá khởi ui rồi thêm đánh dấu thành file đã có chủ
 
       if (project.attachments.isNotEmpty) {
         await markFileAsAdded(project.attachments);
       }
-      await LoadingOverlay.hide();
-      Get.snackbar('Success', 'Update project success',
-          colorText: Colors.green);
-    } catch (e) {
-      await LoadingOverlay.hide();
-      if (kDebugMode) print('Failed to update project: $e');
 
+      LoadingOverlay.hide();
+      // Get.snackbar('Success', 'Project updated successfully!',
+      //     colorText: Colors.green);
+    } catch (e) {
+      LoadingOverlay.hide();
+      if (kDebugMode) print('Failed to update project: $e');
       Get.snackbar('Error', 'Failed to update project', colorText: Colors.red);
     }
   }
 
+  /// Xóa project (chỉ chủ sở hữu mới có quyền xóa)
   Future<void> deleteProject(
       String projectId, String projectOwner, List<String> fileId) async {
-    Get.closeAllSnackbars();
-    LoadingOverlay.show();
     try {
-      if (projectOwner != _authController.currentUser.value!.id) {
-        await LoadingOverlay.hide();
+      if (projectOwner != _authController.currentUser.value?.id) {
         Get.snackbar('Error', 'You are not the owner of this project',
-            colorText: Colors.red, duration: const Duration(milliseconds: 600));
+            colorText: Colors.red);
         return;
-      } else {
-        await _firestore.collection('projects').doc(projectId).delete();
-        if (fileId.isNotEmpty) {
-          for (final id in fileId) {
-            await deleteFileMetaData(id);
-          }
-        }
-        await LoadingOverlay.hide();
-        Get.snackbar('Success', 'Delete project success',
-            colorText: Colors.green,
-            duration: const Duration(milliseconds: 600));
       }
+
+      LoadingOverlay.show();
+      await _firestore.collection('projects').doc(projectId).delete();
+
+      // Xóa các tệp đính kèm nếu có
+      for (final id in fileId) {
+        await deleteFileMetaData(id);
+      }
+
+      LoadingOverlay.hide();
+      Get.snackbar('Success', 'Project deleted successfully!',
+          colorText: Colors.green);
     } catch (e) {
-      await LoadingOverlay.hide();
+      LoadingOverlay.hide();
       if (kDebugMode) print('Delete project with error: $e');
-      Get.snackbar('Error', 'Failed to delete project',
-          colorText: Colors.red, duration: const Duration(seconds: 2));
+      Get.snackbar('Error', 'Failed to delete project', colorText: Colors.red);
     }
   }
 
+  /// Lấy thông tin user từ Firestore
   Future<User?> getUser({
     String? userId,
     String? email,

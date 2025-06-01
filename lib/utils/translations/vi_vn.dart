@@ -136,4 +136,13 @@ const Map<String, String> viVn = {
   'are you sure you want to cancel this task?':
       'Bạn có chắc muốn huỷ nhiệm vụ này chứ?',
   'close': 'Đóng',
+  'Thống kê công việc': 'Thống kê công việc',
+  'Thống kê dự án': 'Thống kê dự án',
+  'Thống kê tổng quan': 'Thống kê tổng quan',
+  'Ồ!!!. Chúng ta chưa có nhiệm vụ nào cả': 'OH!!!. We don\'t have any tasks',
+  'Sort by Status': 'Sắp xếp theo trạng thái',
+  'Sort by Date': 'Sắp xếp theo ngày',
+  'Sort by Priority': 'Sắp xếp theo độ ưu tiên',
+  'Project Summary': 'Tổng quan dự án',
+  'No projects available': 'Không có dự án nào',
 };

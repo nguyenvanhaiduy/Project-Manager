@@ -140,7 +140,7 @@ class ThemeAndLanguageTile extends StatelessWidget {
       child: Material(
         color: Get.isDarkMode
             ? const Color.fromARGB(255, 2, 2, 20)
-            : const Color.fromARGB(255, 194, 153, 153),
+            : const Color.fromARGB(255, 253, 253, 253),
         child: Column(
           children: [
             customListTile(

@@ -2,13 +2,15 @@ import 'package:get/get.dart';
 import 'package:project_manager/controllers/task/task_controller.dart';
 
 class ProgressProjectController extends GetxController {
-  final TaskController taskController = Get.find<TaskController>();
+  late final TaskController taskController;
 
   RxDouble currentValue = 0.0.obs;
+  int count = 0;
 
   @override
   void onInit() {
     super.onInit();
+    taskController = Get.find<TaskController>();
     animateToValue(taskController.calculateProgress());
   }
 

@@ -81,7 +81,6 @@ class TagScreen extends StatelessWidget {
                   ),
                   itemCount: tagController.tags.length,
                   itemBuilder: (context, index) {
-                    debugPrint("Get.size: ${Get.size}");
                     return GestureDetector(
                       onTap: () {
                         Get.toNamed(AppRouters.addTag, arguments: {

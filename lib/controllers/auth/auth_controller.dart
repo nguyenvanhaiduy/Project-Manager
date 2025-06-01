@@ -11,12 +11,10 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
-import 'package:project_manager/bindings/projects/project_binding.dart';
 import 'package:project_manager/controllers/auth/resend_controller.dart';
 import 'package:project_manager/routers/app_routers.dart';
 import 'package:project_manager/models/user.dart';
 import 'package:project_manager/views/auths/login_screen.dart';
-import 'package:project_manager/views/projects/project_screen.dart';
 import 'package:project_manager/views/widgets/loading_overlay.dart';
 
 class AuthController extends GetxController {
@@ -47,11 +45,18 @@ class AuthController extends GetxController {
       apiSecret: cloudinaryApiSecret,
       cloudName: cloudinaryCloudName,
     );
-
-    Future.delayed(const Duration(seconds: 1), () => checkIfUserIsLoggedIn());
   }
 
-  void checkIfUserIsLoggedIn() async {
+  @override
+  void onReady() {
+    super.onReady();
+    Future.delayed(
+      const Duration(seconds: 1),
+      () async => await checkIfUserIsLoggedIn(),
+    );
+  }
+
+  Future<void> checkIfUserIsLoggedIn() async {
     final user = _auth.currentUser;
     if (user != null) {
       final userDoc = await _firestore.collection('users').doc(user.uid).get();
@@ -59,11 +64,14 @@ class AuthController extends GetxController {
         final userData = userDoc.data();
         currentUser.value = User.fromMap(data: userData!);
         // Get.offAllNamed(AppRouters.project);
-        Get.offAllNamed(AppRouters.home);
+        print("User logged in, going to HOME");
 
+        Get.offAllNamed(AppRouters.home);
         isLogout.value = false;
       }
     } else {
+      print("User not found, going to LOGIN");
+
       Get.offAllNamed(AppRouters.login);
     }
   }
@@ -117,7 +125,9 @@ class AuthController extends GetxController {
       if (userDoc.exists) {
         currentUser.value = User.fromMap(data: userDoc.data()!);
         Get.snackbar('Success', 'Login Success', colorText: Colors.green);
-        Get.offAll(() => ProjectScreen(), binding: ProjectBinding());
+        // Get.offAll(() => ProjectScreen(), binding: ProjectBinding());
+        Get.offAllNamed(AppRouters.home);
+
         isLogout.value = false;
       }
       LoadingOverlay.hide();
@@ -293,7 +303,8 @@ class AuthController extends GetxController {
       await _firestore.collection('users').doc(user.uid).set(newUser.toMap());
 
       Get.snackbar('Success', 'Login successful', colorText: Colors.green);
-      Get.offAll(() => ProjectScreen(), binding: ProjectBinding());
+      // Get.offAll(() => ProjectScreen(), binding: ProjectBinding());
+      Get.offAllNamed(AppRouters.home);
 
       LoadingOverlay.hide();
       isLogout.value = false;

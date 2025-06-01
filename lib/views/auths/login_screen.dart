@@ -7,8 +7,6 @@ import 'package:project_manager/routers/app_routers.dart';
 import 'package:project_manager/views/drawer/custom_drawer.dart';
 import 'package:project_manager/views/widgets/widgets.dart';
 
-final _authController = Get.find<AuthController>();
-
 class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
 
@@ -17,6 +15,8 @@ class LoginScreen extends StatelessWidget {
   final _passwordController = TextEditingController();
   final ThemeController themeController = Get.find();
 
+  final _authController = Get.find<AuthController>();
+
   // final emailRegex =
   //     RegExp(r'^[{0-9}{a-z}{A-Z}.]+@[{0-9}{a-z}{A-Z}]+\.[{0-9}{a-z}{A-Z}]+$');
 
@@ -24,7 +24,7 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      drawer: GetPlatform.isWeb ? CustomDrawer() : null,
+      drawer: CustomDrawer(),
       body: Center(
         child: Form(
           key: _formKey,

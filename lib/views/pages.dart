@@ -1,4 +1,5 @@
 import 'package:bottom_navy_bar/bottom_navy_bar.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project_manager/utils/app_constants.dart';
@@ -17,13 +18,78 @@ class PagesScreen extends StatelessWidget {
     final pages = [
       HomeScreen(),
       ProjectScreen(),
-      const AnalyticsScreen(),
+      AnalyticsScreen(),
       CustomDrawer(),
     ].obs;
 
     return Scaffold(
-      body: Obx(() => pages[selectedIndex.value]),
-      bottomNavigationBar: !GetPlatform.isWeb
+      body: Obx(
+        () => Row(
+          children: [
+            kIsWeb
+                ? Container(
+                    width: 80,
+                    height: 500,
+                    margin: const EdgeInsets.only(
+                      left: 20,
+                      right: 10,
+                      top: 20,
+                      bottom: 20,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.blueGrey,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            selectedIndex.value = 0;
+                          },
+                          icon: const Icon(
+                            Icons.apps,
+                            size: 50,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            selectedIndex.value = 1;
+                          },
+                          icon: const ImageIcon(
+                            AssetImage('assets/icons/icons8-project-48.png'),
+                            size: 50,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            selectedIndex.value = 2;
+                          },
+                          icon: const Icon(
+                            Icons.bar_chart,
+                            size: 50,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            selectedIndex.value = 3;
+                          },
+                          icon: const Icon(
+                            Icons.settings,
+                            size: 50,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox(),
+            Expanded(
+              child: pages[selectedIndex.value],
+            )
+          ],
+        ),
+      ),
+      bottomNavigationBar: !kIsWeb
           ? Obx(
               () => BottomNavyBar(
                   backgroundColor:
@@ -39,17 +105,17 @@ class PagesScreen extends StatelessWidget {
                     BottomNavyBarItem(
                       icon: const ImageIcon(
                           AssetImage('assets/icons/icons8-project-48.png')),
-                      title: const Text('Project'),
+                      title: Text('Dự án'.tr),
                       activeColor: Colors.purpleAccent,
                     ),
                     BottomNavyBarItem(
                       icon: const Icon(Icons.bar_chart),
-                      title: const Text('Analytics'),
+                      title: Text('Thống kê'.tr),
                       activeColor: Colors.pink,
                     ),
                     BottomNavyBarItem(
                       icon: const Icon(Icons.settings),
-                      title: const Text('Settings'),
+                      title: Text('Cài đặt'.tr),
                       activeColor: Colors.blue,
                     )
                   ],

@@ -8,6 +8,7 @@ import 'package:project_manager/views/auths/login_screen.dart';
 import 'package:project_manager/views/auths/register_screen.dart';
 import 'package:project_manager/views/auths/splash_screen.dart';
 import 'package:project_manager/views/auths/verification_code.dart';
+import 'package:project_manager/views/backlog/backlog_screen.dart';
 import 'package:project_manager/views/pages.dart';
 import 'package:project_manager/views/profile/profile_screen.dart';
 import 'package:project_manager/views/projects/add_project_screen.dart';
@@ -88,5 +89,9 @@ class AppPages {
       name: AppRouters.editTag,
       page: () => TagCreateOrEditScreen(),
     ),
+    GetPage(
+      name: AppRouters.backlog,
+      page: () => BacklogScreen(),
+    )
   ];
 }

@@ -5,9 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:project_manager/models/file_metadata_flutter.dart';
 
 class AttachmentsController extends GetxController {
-  // final baseUrl = "http://192.168.1.23:8080/project/api/files"; // địa chỉ wifi dưới hn
   final baseUrl =
-      "http://192.168.1.221:8080/project/api/files"; // địa chỉ wifi ở nhà
+      // "http://192.168.1.18:8080/project/api/files"; // địa chỉ wifi dưới hn
+      // final baseUrl =
+      "http://192.168.1.41:8080/project/api/files"; // địa chỉ wifi ở nhà
 
   Future<void> updateList(List<String> attachmentsId) async {
     int count = 0;
@@ -50,6 +51,7 @@ class AttachmentsController extends GetxController {
             fileType: jsonRespose['fileType'] ?? '',
             url: '$baseUrl/$fileId');
       } else {
+        print("url: $baseUrl/$fileId");
         print(
             'Failed to get file metadata. Status code: ${response.statusCode}');
         return null;

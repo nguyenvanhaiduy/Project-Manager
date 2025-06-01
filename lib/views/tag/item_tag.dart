@@ -7,11 +7,11 @@ class ItemTag extends StatelessWidget {
   final int index;
   final TagConfigController tagConfigController = Get.find();
 
-  final formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
     return Form(
-      key: formKey,
+      key: _formKey,
       child: IntrinsicWidth(
         child: TextFormField(
             textAlign: TextAlign.center,
@@ -21,11 +21,11 @@ class ItemTag extends StatelessWidget {
             maxLength: 20,
             onTap: () {
               tagConfigController.isValids[index].value =
-                  formKey.currentState!.validate();
+                  _formKey.currentState!.validate();
             },
             onChanged: (value) {
               tagConfigController.isValids[index].value =
-                  formKey.currentState!.validate();
+                  _formKey.currentState!.validate();
             },
             validator: (value) {
               if (value != null && value.isEmpty) {

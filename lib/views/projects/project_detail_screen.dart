@@ -149,16 +149,6 @@ class ProjectDetailScreen extends StatelessWidget {
     // print('name project: ${taskController.currentProject.value!.title}');
     // print('name lenght: ${taskController.tasks.length}');
 
-    void closeController() {
-      // projectDetailController.dispose();
-      // titleController.dispose();
-      // descriptionController.dispose();
-      // startDateController.dispose();
-      // dueDateController.dispose();
-      // projectDetailController.dispose();
-      print('close all controller');
-    }
-
     void changeStatusIndex(int value) {
       projectDetailController.selectStatusIndex.value = value;
     }
@@ -205,7 +195,6 @@ class ProjectDetailScreen extends StatelessWidget {
           }
           if (shouldPop) {
             Get.back();
-            closeController();
           }
         },
         child: SingleChildScrollView(
@@ -736,31 +725,32 @@ class ProjectDetailScreen extends StatelessWidget {
                             final file =
                                 attachmentsController.attachments[index];
                             return Dismissible(
-                                key: UniqueKey(),
-                                direction: DismissDirection.endToStart,
-                                background: Container(
-                                  alignment: Alignment.centerRight,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.red,
-                                  ),
-                                  child: const Icon(Icons.delete),
+                              key: UniqueKey(),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
                                 ),
-                                onDismissed: (direction) {
-                                  attachmentIdDeletes.add(attachmentsController
-                                      .attachments[index].id);
-                                  attachmentsController.removeAttachment(index);
-                                  projectDetailController.attachments
-                                      .removeAt(index);
+                                child: const Icon(Icons.delete),
+                              ),
+                              onDismissed: (direction) {
+                                attachmentIdDeletes.add(attachmentsController
+                                    .attachments[index].id);
+                                attachmentsController.removeAttachment(index);
+                                projectDetailController.attachments
+                                    .removeAt(index);
+                              },
+                              child: FileTitle(
+                                icon: getIconForAttachment(file.fileName),
+                                fileName: file.fileName,
+                                color: getColorForAttachment(file.fileName),
+                                download: () {
+                                  projectLogic.downloadFile(
+                                      file.url, file.fileName);
                                 },
-                                child: FileTitle(
-                                  icon: getIconForAttachment(file.fileName),
-                                  fileName: file.fileName,
-                                  color: getColorForAttachment(file.fileName),
-                                  download: () {
-                                    projectLogic.downloadFile(
-                                        file.url, file.fileName);
-                                  },
-                                ));
+                              ),
+                            );
                           },
                         ),
                         Align(
@@ -770,13 +760,18 @@ class ProjectDetailScreen extends StatelessWidget {
                                   tooltip: 'Add file',
                                   onPressed: () async {
                                     await projectLogic.pickFile();
-                                    projectDetailController.attachments.add(
-                                      attachmentsController.attachments.last.id,
-                                    );
-                                    attachmentIdAdded.add(attachmentsController
-                                        .attachments.last.id);
-                                    print(
-                                        'name file: ${attachmentsController.attachments.last.fileName}');
+                                    if (attachmentsController
+                                        .attachments.isNotEmpty) {
+                                      projectDetailController.attachments.add(
+                                        attachmentsController
+                                            .attachments.last.id,
+                                      );
+                                      attachmentIdAdded.add(
+                                          attachmentsController
+                                              .attachments.last.id);
+                                      print(
+                                          'name file: ${attachmentsController.attachments.last.fileName}');
+                                    }
                                   },
                                   icon: const Icon(Icons.add),
                                 )

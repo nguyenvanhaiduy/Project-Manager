@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:path/path.dart';
 import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/logic/project_logic.dart';
 import 'package:project_manager/models/project.dart';
@@ -24,12 +23,17 @@ class TaskController extends GetxController {
 
   Future<void> updateCurrentProject(Project project) async {
     currentProject.value = project;
+    tasks.bindStream(fetchData(id: project.id));
+    await Future.delayed(
+        const Duration(milliseconds: 200)); // Đợi stream bind xong
+    calculateProgress();
+    print("ddax cập nhật project");
   } // để cập nhật lại nếu project có thêm người dùng thì ngay lập tức phần task có thể nhận được dữ liệu người dùng mới
 
-  Stream<List<Task>> fetchData() {
+  Stream<List<Task>> fetchData({String? id}) {
     return _firestore
         .collection('tasks')
-        .where('projectOwner', isEqualTo: currentProject.value?.id)
+        .where('projectOwner', isEqualTo: id ?? currentProject.value?.id)
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) {
               return Task.fromMap(data: doc.data());
@@ -61,8 +65,8 @@ class TaskController extends GetxController {
       await LoadingOverlay.hide();
 
       Get.back();
-      Get.snackbar('Success', 'Add task success',
-          colorText: Colors.green, duration: const Duration(milliseconds: 300));
+      // Get.snackbar('Success', 'Add task success',
+      //     colorText: Colors.green, duration: const Duration(milliseconds: 300));
     } catch (e) {
       if (kDebugMode) print('Add task with error: $e');
       await LoadingOverlay.hide();

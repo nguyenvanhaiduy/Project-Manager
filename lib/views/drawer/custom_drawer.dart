@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:project_manager/controllers/auth/auth_controller.dart';
 import 'package:project_manager/controllers/auth/drawer_controller.dart';
 import 'package:project_manager/controllers/language_controller.dart';
 import 'package:project_manager/controllers/theme_controller.dart';
@@ -16,10 +18,11 @@ class CustomDrawer extends StatelessWidget {
   final DrawerrController drawerController = Get.find();
   final ThemeController themeController = Get.find();
   final LanguageController languageController = Get.find();
+  final AuthController authController = Get.find();
 
   @override
   Widget build(BuildContext context) {
-    return GetPlatform.isWeb
+    return (kIsWeb || authController.isLogout.value)
         ? Material(
             child: Drawer(
               child: SingleChildScrollView(

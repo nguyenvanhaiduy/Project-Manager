@@ -13,7 +13,6 @@ import 'package:project_manager/routers/app_routers.dart';
 import 'package:project_manager/views/tasks/components/card_task_custom.dart';
 import 'package:project_manager/views/widgets/widgets.dart';
 
-// ignore: must_be_immutable
 class TableOfMissionScreen extends StatelessWidget {
   TableOfMissionScreen({super.key});
 
@@ -23,31 +22,81 @@ class TableOfMissionScreen extends StatelessWidget {
   final AttachmentsController attachmentsController = Get.find();
   final ProjectLogic projectLogic = ProjectLogic();
   final RxString status = ''.obs;
-  RxBool hasChange = false.obs;
+  final RxBool hasChange = false.obs;
+  final RxString searchText = ''.obs;
+  final RxBool isSearching = false.obs;
+  final TextEditingController searchController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     final project = taskController.currentProject.value!;
-    taskController.tasks
-        .bindStream(taskController.fetchData()); // load lại task theo project
+    taskController.tasks.bindStream(taskController.fetchData());
     final isOwner = project.owner == authController.currentUser.value!.id;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('table of mission'.tr),
+        title: Obx(
+          () => isSearching.value
+              ? TextField(
+                  autofocus: true,
+                  controller: searchController, // Sử dụng controller riêng
+                  onChanged: (value) {
+                    searchText.value = value;
+                  },
+                  style: TextStyle(
+                      color: Get.isDarkMode ? Colors.white : Colors.black),
+                  decoration: InputDecoration(
+                    hintText: 'Tìm kiếm nhiệm vụ...',
+                    hintStyle: TextStyle(
+                        color: Get.isDarkMode ? Colors.white70 : Colors.black),
+                    border: InputBorder.none,
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.close,
+                          color:
+                              Get.isDarkMode ? Colors.white10 : Colors.black),
+                      onPressed: () {
+                        searchController.clear(); // Xóa toàn bộ text
+                        searchText.value = ''; // Cập nhật searchText
+                        isSearching.value = false; // Thoát chế độ tìm kiếm
+                        FocusScope.of(context).unfocus();
+                      },
+                    ),
+                  ),
+                )
+              : Text('Bảng nhiệm vụ'.tr),
+        ),
+        actions: [
+          Obx(
+            () => !isSearching.value
+                ? IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: () {
+                      isSearching.value = true;
+                    },
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
       ),
       body: PopScope(
         onPopInvokedWithResult: (didPop, result) {
-          Get.find<ProgressProjectController>()
+          Get.put(ProgressProjectController())
               .animateToValue(taskController.calculateProgress());
-          attachmentsController.updateList(project.attachments);
         },
         child: Obx(
-          () => taskController.tasks.isEmpty
-              ? Center(child: Text('oh!!!. We don\'t have any tasks yet'.tr))
-              : Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Obx(
-                    () => GridView.builder(
+          () {
+            final filteredTasks = taskController.tasks
+                .where((task) => task.title
+                    .toLowerCase()
+                    .contains(searchText.value.toLowerCase()))
+                .toList();
+
+            return filteredTasks.isEmpty
+                ? const Center(
+                    child: Text('Ồ!!!. Chúng ta chưa có nhiệm vụ nào cả'))
+                : Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: GridView.builder(
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: MediaQuery.of(context).size.width < 450
                             ? (MediaQuery.of(context).size.width ~/ 170)
@@ -56,22 +105,19 @@ class TableOfMissionScreen extends StatelessWidget {
                         crossAxisSpacing: 10,
                         mainAxisExtent: 193,
                       ),
-                      itemCount: taskController.tasks.length,
+                      itemCount: filteredTasks.length,
                       itemBuilder: (context, index) {
-                        final task = taskController.tasks[index];
-
+                        final task = filteredTasks[index];
                         return GestureDetector(
                           onTap: () async {
                             _showTaskDetails(context, task, isOwner);
                           },
-                          child: CardTaskCustom(
-                            task: taskController.tasks[index],
-                          ),
+                          child: CardTaskCustom(task: task),
                         );
                       },
                     ),
-                  ),
-                ),
+                  );
+          },
         ),
       ),
       floatingActionButton: isOwner
@@ -85,10 +131,8 @@ class TableOfMissionScreen extends StatelessWidget {
                     'isAddTask': true,
                   },
                 );
-                print(
-                    '${MediaQuery.of(context).size.width ~/ 200} ${MediaQuery.of(context).size.width}');
               },
-              tooltip: 'add'.tr,
+              tooltip: 'Thêm',
               backgroundColor: Colors.blue,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
@@ -99,6 +143,8 @@ class TableOfMissionScreen extends StatelessWidget {
           : null,
     );
   }
+
+  // ... (phần còn lại của code, bao gồm _showTaskDetails, _buildDetailRow, showMenu, _buildDetailRowWithExpansion giữ nguyên)
 
   void _showTaskDetails(BuildContext context, Task task, bool isOwner) async {
     status.value = task.status.name;
@@ -137,9 +183,7 @@ class TableOfMissionScreen extends StatelessWidget {
                                 Orientation.portrait
                             ? Get.size.width * 0.9
                             : Get.size.height * 0.9,
-                        maxHeight: Get.size.height *
-                            0.8), // Max width for responsiveness
-
+                        maxHeight: Get.size.height * 0.8),
                     child: SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -173,7 +217,7 @@ class TableOfMissionScreen extends StatelessWidget {
                                                     Status.cancelled.name) {
                                                   isUpdate =
                                                       await customDialogConfirm(
-                                                          'are you sure you want to cancel this task?',
+                                                          'Bạn có chắc chắn muốn hủy nhiệm vụ này?',
                                                           () {});
                                                 }
                                                 if (isUpdate) {
@@ -225,7 +269,7 @@ class TableOfMissionScreen extends StatelessWidget {
                                                           const SizedBox(
                                                               height: 10),
                                                           Text(
-                                                            'Notification',
+                                                            'Thông báo',
                                                             style: Get.textTheme
                                                                 .bodyLarge!
                                                                 .copyWith(
@@ -249,7 +293,6 @@ class TableOfMissionScreen extends StatelessWidget {
                                                                           .w500),
                                                             ),
                                                           ),
-                                                          // SizedBox(height: 10),
                                                           const Divider(),
                                                           TextButton(
                                                               onPressed: () {
@@ -282,15 +325,15 @@ class TableOfMissionScreen extends StatelessWidget {
                                   : const SizedBox()
                             ],
                           ),
-                          const Divider(), // Add a divider for visual separation
+                          const Divider(),
                           _buildDetailRowWithExpansion(
-                              '${'description'.tr}:', task.description),
+                              'Mô tả:', task.description),
                           _buildDetailRow(
-                              '${'start date'.tr}:',
+                              'Ngày bắt đầu:',
                               DateFormat('MM/dd/yyyy, HH:mm')
                                   .format(task.startDate)),
                           _buildDetailRow(
-                              '${'due date'.tr}:',
+                              'Hạn chót:',
                               DateFormat('MM/dd/yyyy, HH:mm')
                                   .format(task.endDate)),
                           FutureBuilder(
@@ -300,23 +343,20 @@ class TableOfMissionScreen extends StatelessWidget {
                               String assignedTo = snapshot.connectionState ==
                                       ConnectionState.waiting
                                   ? '...'
-                                  : (snapshot.data?.name ??
-                                      'unknown'.tr); // Use null-aware operator
-                              return _buildDetailRow(
-                                  '${'assigned to'.tr}:', assignedTo);
+                                  : (snapshot.data?.name ?? 'chưa rõ');
+                              return _buildDetailRow('Giao cho:', assignedTo);
                             },
                           ),
-                          _buildDetailRow('${'status'.tr}:', status.value.tr,
+                          _buildDetailRow('Trạng thái:', status.value.tr,
                               showMenu:
                                   showMenu(value: task.status.name.tr.obs)),
+                          _buildDetailRow('Độ ưu tiên:', task.priority.name.tr),
                           _buildDetailRow(
-                              '${'priority'.tr}:', task.priority.name.tr),
-                          _buildDetailRow(
-                              '${'complex'.tr}:', task.complexity.name.tr),
+                              'Độ phức tạp:', task.complexity.name.tr),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4.0),
                             child: Text(
-                              'Attachments:'.tr,
+                              'Tệp đính kèm:',
                               style:
                                   const TextStyle(fontWeight: FontWeight.bold),
                             ),
@@ -381,7 +421,7 @@ class TableOfMissionScreen extends StatelessWidget {
                                     IconButton(
                                       color: Colors.red,
                                       padding: const EdgeInsets.all(0),
-                                      tooltip: 'Add file',
+                                      tooltip: 'Thêm tệp',
                                       onPressed: () async {
                                         await projectLogic.pickFile();
                                         hasChange.value = true;
@@ -394,7 +434,9 @@ class TableOfMissionScreen extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              if (isOwner)
+                              if (isOwner ||
+                                  task.assignTo ==
+                                      authController.currentUser.value!.id)
                                 ElevatedButton(
                                   onPressed: () {
                                     Get.back();
@@ -411,14 +453,14 @@ class TableOfMissionScreen extends StatelessWidget {
                                       },
                                     );
                                   },
-                                  child: Text('edit'.tr),
+                                  child: Text('Sửa'),
                                 ),
                               if (isOwner)
                                 ElevatedButton(
                                   onPressed: () async {
                                     final shouldDelete =
                                         await customDialogConfirm(
-                                      'are you sure you want to delete this task?',
+                                      'Bạn có chắc chắn muốn xóa nhiệm vụ này?',
                                       () {
                                         Get.back();
                                       },
@@ -430,14 +472,14 @@ class TableOfMissionScreen extends StatelessWidget {
                                       Get.back();
                                     }
                                   },
-                                  child: Text('delete'.tr),
+                                  child: Text('Xóa'),
                                 ),
                               if (task.assignTo == '')
                                 ElevatedButton(
                                   onPressed: () async {
                                     if (task.assignTo == '') {
                                       final shouldClaim = await customDialogConfirm(
-                                          'are you sure you want to accept this task?',
+                                          'Bạn có chắc chắn muốn nhận nhiệm vụ này?',
                                           () {});
                                       if (shouldClaim) {
                                         await taskController.updateTask(
@@ -461,13 +503,12 @@ class TableOfMissionScreen extends StatelessWidget {
                                         Get.back();
                                       }
                                     } else {
-                                      // Get.closeAllSnackbars();
                                       Get.closeCurrentSnackbar();
-                                      Get.snackbar('Notice',
-                                          'You chose not to accept this task.');
+                                      Get.snackbar('Thông báo',
+                                          'Bạn đã chọn không nhận nhiệm vụ này.');
                                     }
                                   },
-                                  child: Text('claim'.tr),
+                                  child: Text('Nhận'),
                                 ),
                             ],
                           )
@@ -483,7 +524,6 @@ class TableOfMissionScreen extends StatelessWidget {
       },
       transitionBuilder: (context, anim1, anim2, child) {
         return Transform.scale(
-          // angle: 10,
           scale: anim1.value,
           child: Opacity(
             opacity: anim1.value,
@@ -496,18 +536,14 @@ class TableOfMissionScreen extends StatelessWidget {
 
   Widget _buildDetailRow(String label, String value, {List<Widget>? showMenu}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-          vertical: 4.0), // Add some spacing between rows
-      child: Row(
-          mainAxisAlignment:
-              MainAxisAlignment.spaceBetween, // Align label and value
-          children: [
-            Text(label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                )), // Make label bold
-            showMenu == null ? Text(value) : Row(children: showMenu),
-          ]),
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Text(label,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+            )),
+        showMenu == null ? Text(value) : Row(children: showMenu),
+      ]),
     );
   }
 
@@ -549,17 +585,14 @@ class TableOfMissionScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Column(
-        // Use a Column for the label and expandable text
-        crossAxisAlignment:
-            CrossAxisAlignment.start, // Align label to the start
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4), // Spacing between label and text
+          const SizedBox(height: 4),
           Text(
             value,
-            overflow: TextOverflow.fade, // Handles text overflow smoothly
-            style: const TextStyle(
-                height: 1.5), // Line height for better readability
+            overflow: TextOverflow.fade,
+            style: const TextStyle(height: 1.5),
           ),
         ],
       ),
