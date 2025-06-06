@@ -154,4 +154,14 @@ const Map<String, String> enUs = {
   'Cài đặt': 'Settings',
   'Dự án': 'Project',
   "Bảng nhiệm vụ": 'Table of mission',
+  // 'Project Summary': 'Tổng quan dự án',
+  'Ồ!!!. Chúng ta chưa có nhiệm vụ nào cả': 'OH!!!. We don\'t have any tasks',
+  'No projects available': 'No projects available',
+  'Sort by Status': 'Sort by Status',
+  'Sort by Date': 'Sort by Date',
+  'Sort by Priority': 'Sort by Priority',
+  'Tìm kiếm nhiệm vụ...': 'Search task...',
+  'Please select one status to view projects':
+      'Please select one status to view projects',
+  'Project Summary': 'Project Summary',
 };

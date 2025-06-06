@@ -8,7 +8,7 @@ class AttachmentsController extends GetxController {
   final baseUrl =
       // "http://192.168.1.18:8080/project/api/files"; // địa chỉ wifi dưới hn
       // final baseUrl =
-      "http://192.168.1.41:8080/project/api/files"; // địa chỉ wifi ở nhà
+      "http://172.72.125.27:8080/project/api/files"; // địa chỉ wifi ở nhà
 
   Future<void> updateList(List<String> attachmentsId) async {
     int count = 0;

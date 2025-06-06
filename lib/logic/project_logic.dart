@@ -14,7 +14,7 @@ import 'package:path/path.dart'
     as path; // thư viện này để tạo đường dãn lưu file
 
 const baseUrl =
-    "http://192.168.1.23:8080/project/api/files"; // địa chỉ wifi dứoi hn
+    "http://172.72.125.27:8080/project/api/files"; // địa chỉ wifi dứoi hn
 // const baseUrl =
 //     "http://192.168.1.41:8080/project/api/files"; // địa chỉ wifi ở nhà
 

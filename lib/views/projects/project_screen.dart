@@ -25,8 +25,7 @@ class ProjectScreen extends StatelessWidget {
         },
         itemBuilder: (context) => [
           PopupMenuItem(value: 'status', child: Text('Sort by Status'.tr)),
-          PopupMenuItem(
-              value: 'priority', child: Text('Sort by Priority'.tr)),
+          PopupMenuItem(value: 'priority', child: Text('Sort by Priority'.tr)),
           PopupMenuItem(value: 'date', child: Text('Sort by Date'.tr)),
         ],
         icon: const ImageIcon(AssetImage('assets/icons/icons8-sort-64.png')),
@@ -46,7 +45,7 @@ class ProjectScreen extends StatelessWidget {
                     projectController.searchProject(value);
                   },
                   decoration: InputDecoration(
-                    hintText: 'Search project...',
+                    hintText: 'Search project...'.tr,
                     border: InputBorder.none,
                     hintStyle: Get.textTheme.bodyMedium,
                   ),
@@ -85,7 +84,7 @@ class ProjectScreen extends StatelessWidget {
         if (projectController.projects.isEmpty) {
           return Center(
             child: Text(
-              'Oh!!! You don\'t have any projects yet'.tr,
+              'oh!!!. You don\'t have any projects yet'.tr,
               style: Get.textTheme.bodyLarge,
             ),
           );

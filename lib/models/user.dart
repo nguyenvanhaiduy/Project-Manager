@@ -24,20 +24,23 @@ class User {
 
   factory User.fromMap({required Map<String, dynamic> data}) {
     return User(
-        id: data['id'],
-        name: data['name'],
-        job: data['job'],
-        phone: data['phone'] ?? '',
-        email: data['email'],
-        imageUrl: data['imageUrl'],
-        color: data['color'] != null
-            ? (RegExp(r'^#[0-9a-fA-F]{6}$').hasMatch(data['color'])
-                ? Color(int.parse(data['color'].toString().substring(1),
-                        radix: 16) +
-                    0xFF000000)
-                : null)
-            : null,
-        idTags: data['idTags']);
+      id: data['id'],
+      name: data['name'],
+      job: data['job'],
+      phone: data['phone'] ?? '',
+      email: data['email'],
+      imageUrl: data['imageUrl'],
+      color: data['color'] != null
+          ? (RegExp(r'^#[0-9a-fA-F]{6}$').hasMatch(data['color'])
+              ? Color(
+                  int.parse(data['color'].toString().substring(1), radix: 16) +
+                      0xFF000000)
+              : null)
+          : null,
+      idTags: data['idTags'] != null
+          ? List<String>.from(data['idTags'])
+          : <String>[],
+    );
   }
 
   Map<String, dynamic> toMap() {

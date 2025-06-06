@@ -46,7 +46,7 @@ class TableOfMissionScreen extends StatelessWidget {
                   style: TextStyle(
                       color: Get.isDarkMode ? Colors.white : Colors.black),
                   decoration: InputDecoration(
-                    hintText: 'Tìm kiếm nhiệm vụ...',
+                    hintText: 'Tìm kiếm nhiệm vụ...'.tr,
                     hintStyle: TextStyle(
                         color: Get.isDarkMode ? Colors.white70 : Colors.black),
                     border: InputBorder.none,

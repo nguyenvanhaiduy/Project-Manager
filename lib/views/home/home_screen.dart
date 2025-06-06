@@ -63,7 +63,7 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Project Summary',
+                'Project Summary'.tr,
                 style: Get.textTheme.titleMedium!.copyWith(
                   color: Get.isDarkMode ? Colors.white : Colors.black,
                 ),
@@ -141,8 +141,9 @@ class HomeScreen extends StatelessWidget {
                             ? Container(
                                 height: 200,
                                 alignment: Alignment.center,
-                                child: const Text(
-                                    'Please select one project summary'),
+                                child: Text(
+                                    'Please select one status to view projects'
+                                        .tr),
                               )
                             : projectSummary[selectedProjectSum.value].isEmpty
                                 ? Text('No projects available'.tr)
